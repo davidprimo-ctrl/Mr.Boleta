@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Paleta de Mr.Boleta: ajustar los HEX según los mockups */
+@theme {
+  --color-navy-950: #070e22;
+  --color-navy-900: #0b1530;
+  --color-navy-800: #111e42;
+  --color-navy-700: #1a2a57;
+  --color-brand-500: #2f7cf6;
+  --color-brand-400: #5b9bff;
+}
+
+body {
+  background-color: var(--color-navy-900);
+  color: #ffffff;
+  font-family: system-ui, sans-serif;
+}
