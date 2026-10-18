@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────── ENUMS ───────────
+enum Rol {
+  COMPRADOR
+  ADMIN
+}
+
+enum EstadoEvento {
+  BORRADOR // creado pero no visible en el catálogo
+  PUBLICADO // visible y a la venta
+  INACTIVO // desactivado por el admin
+}
+
+enum EstadoOrden {
+  PENDIENTE // cupos reservados, esperando pago (10 min)
+  APROBADA // pago aprobado
+  RECHAZADA // pago rechazado
+  EXPIRADA // pasaron los 10 min sin pagar
+}
+
+enum EstadoBoleta {
+  ACTIVA
+  USADA
+  ANULADA
+}
+
+// ─────────── MODELOS ───────────
+model Usuario {
+  id       Int      @id @default(autoincrement())
+  auth0Id  String   @unique // "sub" que entrega Auth0 (Google)
+  nombre   String
+  email    String   @unique
+  rol      Rol      @default(COMPRADOR)
+  creadoEn DateTime @default(now())
+
+  ordenes Orden[]
+}
+
+model Evento {
+  id          Int          @id @default(autoincrement())
+  nombre      String
+  descripcion String
+  artista     String
+  lugar       String
+  ciudad      String
+  fecha       DateTime
+  imagenUrl   String?
+  estado      EstadoEvento @default(BORRADOR)
+  creadoEn    DateTime     @default(now())
+
+  localidades Localidad[]
+  ordenes     Orden[]
+}
+
+model Localidad {
+  id               Int     @id @default(autoincrement())
+  nombre           String // ej: "VIP", "General"
+  precio           Decimal @db.Decimal(12, 2) // pesos colombianos
+  aforo            Int // cupos totales
+  cuposDisponibles Int // baja al reservar, sube si expira
+
+  eventoId Int
+  evento   Evento @relation(fields: [eventoId], references: [id])
+
+  detalles DetalleOrden[]
+
+  @@unique([eventoId, nombre]) // no repetir "VIP" en el mismo evento
+}
+
+model Orden {
+  id             Int         @id @default(autoincrement())
+  estado         EstadoOrden @default(PENDIENTE)
+  total          Decimal     @db.Decimal(12, 2)
+  expiraEn       DateTime // creadoEn + 10 minutos
+  referenciaPago String?     @unique // referencia del pago (mock o Wompi)
+  creadoEn       DateTime    @default(now())
+
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  eventoId Int // una orden = un solo evento
+  evento   Evento @relation(fields: [eventoId], references: [id])
+
+  detalles DetalleOrden[]
+}
+
+model DetalleOrden {
+  id             Int     @id @default(autoincrement())
+  cantidad       Int
+  precioUnitario Decimal @db.Decimal(12, 2) // precio al momento de comprar
+  subtotal       Decimal @db.Decimal(12, 2)
+
+  ordenId Int
+  orden   Orden @relation(fields: [ordenId], references: [id])
+
+  localidadId Int
+  localidad   Localidad @relation(fields: [localidadId], references: [id])
+
+  boletas Boleta[]
+}
+
+model Boleta {
+  id       Int          @id @default(autoincrement())
+  codigoQr String       @unique // código único que va en el QR
+  estado   EstadoBoleta @default(ACTIVA)
+  creadoEn DateTime     @default(now())
+
+  detalleOrdenId Int
+  detalleOrden   DetalleOrden @relation(fields: [detalleOrdenId], references: [id])
+}
