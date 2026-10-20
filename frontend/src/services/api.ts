@@ -49,3 +49,8 @@ export function crearOrden(
 export function obtenerOrden(token: string, id: string | number) {
   return pedir<Orden>(`/ordenes/${id}`, token);
 }
+
+/** Inicia el pago de una orden: devuelve la URL de la pasarela. */
+export function iniciarPago(token: string, ordenId: number) {
+  return pedir<{ urlPago: string }>(`/pagos/ordenes/${ordenId}`, token, "POST");
+}
