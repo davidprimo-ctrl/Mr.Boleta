@@ -21,3 +21,10 @@ export interface Evento {
   estado: "BORRADOR" | "PUBLICADO" | "INACTIVO";
   localidades: Localidad[];
 }
+
+export interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: "COMPRADOR" | "ADMIN";
+}
