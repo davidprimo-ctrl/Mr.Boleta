@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { useAuth0 } from "@auth0/auth0-react";
-import { obtenerOrden } from "../services/api";
+import { QRCodeSVG } from "qrcode.react";
+import { iniciarPago, obtenerOrden } from "../services/api";
 import type { EstadoOrden, Orden } from "../types";
 import { formatoCOP, formatoFecha } from "../utils/formato";
 
@@ -17,7 +18,9 @@ export default function PaginaOrden() {
   const { isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
   const [orden, setOrden] = useState<Orden | null>(null);
   const [error, setError] = useState("");
-  const [ahora, setAhora] = useState(Date.now());
+  const [ahora, setAhora] = useState(() => Date.now());
+  const [pagando, setPagando] = useState(false);
+  const [errorPago, setErrorPago] = useState("");
 
   // Cargar la orden (requiere sesión)
   useEffect(() => {
@@ -53,6 +56,21 @@ export default function PaginaOrden() {
   const vencida = orden.estado === "EXPIRADA" || (orden.estado === "PENDIENTE" && restanteMs === 0);
   const estado = ESTADOS[vencida ? "EXPIRADA" : orden.estado];
 
+  async function pagar() {
+    if (!orden) return;
+    setPagando(true);
+    setErrorPago("");
+    try {
+      const token = await getAccessTokenSilently();
+      if (!token) throw new Error("No se obtuvo el token de Auth0");
+      const { urlPago } = await iniciarPago(token, orden.id);
+      window.location.href = urlPago; // ir a la pasarela
+    } catch (e) {
+      setErrorPago((e as Error).message);
+      setPagando(false);
+    }
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
       <p className="text-sm text-gray-400">Orden #{orden.id}</p>
@@ -76,9 +94,13 @@ export default function PaginaOrden() {
         </div>
       )}
 
-      {vencida && (
+      {(vencida || orden.estado === "RECHAZADA") && (
         <div className="mt-6 bg-navy-800 border border-navy-700 rounded-xl p-6">
-          <p>La reserva venció y los cupos se liberaron.</p>
+          <p>
+            {orden.estado === "RECHAZADA"
+              ? "El pago fue rechazado y los cupos se liberaron."
+              : "La reserva venció y los cupos se liberaron."}
+          </p>
           <Link to={`/eventos/${orden.evento.id}`} className="text-brand-400 hover:underline">
             Volver a intentarlo →
           </Link>
@@ -103,13 +125,38 @@ export default function PaginaOrden() {
       </div>
 
       {orden.estado === "PENDIENTE" && !vencida && (
-        <button
-          type="button"
-          disabled
-          className="w-full mt-6 bg-brand-500 opacity-50 py-3 rounded-lg font-semibold cursor-not-allowed"
-        >
-          Pagar (se habilita en el turno de Sergio)
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={pagar}
+            disabled={pagando}
+            className="w-full mt-6 bg-brand-500 hover:bg-brand-400 disabled:opacity-50 py-3 rounded-lg font-semibold"
+          >
+            {pagando ? "Conectando con la pasarela..." : `Pagar ${formatoCOP(orden.total)}`}
+          </button>
+          {errorPago && <p className="text-red-400 text-sm mt-3">{errorPago}</p>}
+        </>
+      )}
+
+      {/* Boletas con QR (solo si el pago fue aprobado) */}
+      {orden.estado === "APROBADA" && (
+        <section className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Tus boletas 🎟️</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {orden.detalles.flatMap((d) =>
+              d.boletas.map((boleta, i) => (
+                <div key={boleta.id} className="bg-white text-navy-950 rounded-xl p-5 flex flex-col items-center">
+                  <QRCodeSVG value={boleta.codigoQr} size={160} />
+                  <p className="font-bold mt-3">
+                    {d.localidad.nombre} · Boleta {i + 1}
+                  </p>
+                  <p className="text-[10px] text-gray-500 break-all text-center mt-1">{boleta.codigoQr}</p>
+                </div>
+              )),
+            )}
+          </div>
+          <p className="text-sm text-gray-400 mt-4">Presenta este código QR en la entrada del evento.</p>
+        </section>
       )}
     </main>
   );
