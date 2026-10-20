@@ -16,6 +16,7 @@ function requerida(nombre: string): string {
 export const env = {
   PORT: Number(process.env.PORT) || 3000,
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+  API_URL: process.env.API_URL || "http://localhost:3000",
 
   // Base de datos PostgreSQL (Neon)
   DATABASE_URL: requerida("DATABASE_URL"),
