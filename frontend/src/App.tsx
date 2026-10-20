@@ -2,6 +2,7 @@ import { Link, Route, Routes } from "react-router";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import DetalleEvento from "./pages/DetalleEvento";
+import PaginaOrden from "./pages/Orden";
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/eventos/:id" element={<DetalleEvento />} />
+        <Route path="/ordenes/:id" element={<PaginaOrden />} />
         <Route
           path="*"
           element={
