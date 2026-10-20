@@ -16,6 +16,7 @@ createRoot(document.getElementById("root")!).render(
         scope: "openid profile email",
       }}
       cacheLocation="localstorage"
+      onRedirectCallback={(appState) => window.location.replace(appState?.returnTo ?? "/")}
     >
       <BrowserRouter>
         <App />
