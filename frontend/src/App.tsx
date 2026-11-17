@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import DetalleEvento from "./pages/DetalleEvento";
 import PaginaOrden from "./pages/Orden";
+import MisBoletas from "./pages/MisBoletas";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/eventos/:id" element={<DetalleEvento />} />
         <Route path="/ordenes/:id" element={<PaginaOrden />} />
+        <Route path="/mis-boletas" element={<MisBoletas />} />
         <Route
           path="*"
           element={
