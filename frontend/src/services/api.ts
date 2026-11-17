@@ -54,3 +54,8 @@ export function obtenerOrden(token: string, id: string | number) {
 export function iniciarPago(token: string, ordenId: number) {
   return pedir<{ urlPago: string }>(`/pagos/ordenes/${ordenId}`, token, "POST");
 }
+
+/** Todas las órdenes del usuario que inició sesión (con sus boletas). */
+export function obtenerMisOrdenes(token: string) {
+  return pedir<Orden[]>("/ordenes", token);
+}
