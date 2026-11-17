@@ -1,16 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { prisma } from "../lib/prisma";
 import { HttpError } from "../lib/errores";
+import { enviarBoletasPorCorreo } from "./correo.service";
 
 /**
  * Pago APROBADO: la orden pasa a APROBADA y se crea una boleta
  * con un código QR único por cada entrada comprada.
+ * Después se envían las boletas por correo al comprador.
  */
 export async function aprobarOrden(ordenId: number, referenciaPago: string) {
-  return prisma.$transaction(async (tx) => {
+  const recienAprobada = await prisma.$transaction(async (tx) => {
     const orden = await tx.orden.findUnique({ where: { id: ordenId }, include: { detalles: true } });
     if (!orden) throw new HttpError(404, "Orden no encontrada");
-    if (orden.estado === "APROBADA") return; // el aviso de pago puede llegar repetido
+    if (orden.estado === "APROBADA") return false; // el aviso de pago puede llegar repetido
     if (orden.expiraEn < new Date()) throw new HttpError(409, "La reserva ya venció");
 
     // Solo si SIGUE pendiente (evita choques con la expiración automática)
@@ -28,7 +30,13 @@ export async function aprobarOrden(ordenId: number, referenciaPago: string) {
         })),
       });
     }
+    return true;
   });
+
+  // El correo se envía DESPUÉS de guardar el pago: si falla, el pago no se pierde
+  if (recienAprobada) {
+    enviarBoletasPorCorreo(ordenId).catch((e) => console.error("No se pudo enviar el correo:", e));
+  }
 }
 
 /** Pago RECHAZADO: la orden pasa a RECHAZADA y los cupos vuelven a estar disponibles. */
@@ -41,7 +49,7 @@ export async function rechazarOrden(ordenId: number, referenciaPago: string) {
     if (count === 0) throw new HttpError(409, "La orden ya no está pendiente");
 
     const detalles = await tx.detalleOrden.findMany({ where: { ordenId } });
-    for (const d of detalles) {
+        for (const d of detalles) {
       await tx.localidad.update({
         where: { id: d.localidadId },
         data: { cuposDisponibles: { increment: d.cantidad } },
