@@ -2,7 +2,8 @@ import express, { type ErrorRequestHandler } from "express";
 import { usuariosRouter } from "./routes/usuarios.routes";
 import { ordenesRouter } from "./routes/ordenes.routes";
 import { pagosRouter } from "./routes/pagos.routes";
-import { requiereAuth } from "./middlewares/auth";
+import { adminRouter } from "./routes/admin.routes";
+import { requiereAuth, requiereAdmin } from "./middlewares/auth";
 import cors from "cors";
 
 import { eventosRouter } from "./routes/eventos.routes";
@@ -17,9 +18,13 @@ app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", app: "Mr.Boleta API" });
 });
 
+app.use("/api/eventos", eventosRouter);
+
 // Rutas que requieren sesión iniciada
 app.use("/api/usuarios", requiereAuth, usuariosRouter);
 app.use("/api/ordenes", requiereAuth, ordenesRouter);
+
+app.use("/api/admin", requiereAuth, requiereAdmin, adminRouter);
 
 app.use("/api/pagos", pagosRouter); // la autenticación se aplica adentro, solo donde hace falta
 
@@ -32,6 +37,6 @@ const manejarErrores: ErrorRequestHandler = (err, _req, res, _next) => {
 };
 app.use(manejarErrores);
 
-app.use("/api/eventos", eventosRouter);
+
 
 export default app;
