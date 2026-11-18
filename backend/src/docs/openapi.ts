@@ -226,6 +226,32 @@ export const documentoOpenApi = {
         },
       },
     },
+    "/api/admin/boletas/validar": {
+      post: {
+        tags: ["Administración"],
+        summary: "Check-in: valida una boleta escaneando su QR",
+        description:
+          "Marca la boleta como USADA devolviendo sus datos. Si ya estaba usada, anulada o su orden no está aprobada " +
+          "responde 409, así una segunda lectura no cuenta dos veces. El cambio es atómico (updateMany condicional).",
+        security: conSesion,
+        requestBody: {
+          required: true,
+          content: json({
+            type: "object",
+            required: ["codigoQr"],
+            properties: { codigoQr: { type: "string", format: "uuid", example: "3f8a2c1e-9b7d-4e5f-a1b2-c3d4e5f6a7b8" } },
+          }),
+        },
+        responses: {
+          200: { description: "Boleta validada correctamente", content: json(ref("BoletaValidada")) },
+          400: error("Falta el código QR"),
+          401: error("Sin token o token inválido"),
+          403: error("El usuario no es ADMIN"),
+          404: error("No existe una boleta con ese código QR"),
+          409: error("La boleta ya fue usada, está anulada o la orden no está aprobada"),
+        },
+      },
+    },
     "/api/admin/eventos": {
       get: {
         tags: ["Administración"],
@@ -442,6 +468,19 @@ export const documentoOpenApi = {
               },
             },
           },
+        },
+      },
+      BoletaValidada: {
+        type: "object",
+        properties: {
+          id: { type: "integer", example: 21 },
+          codigoQr: { type: "string", format: "uuid" },
+          estado: { type: "string", enum: ["USADA"] },
+          evento: { type: "object", properties: { id: { type: "integer" }, nombre: { type: "string" }, fecha: { type: "string", format: "date-time" }, lugar: { type: "string" }, ciudad: { type: "string" } } },
+          localidad: { type: "string", example: "VIP" },
+          comprador: { type: "object", properties: { nombre: { type: "string" }, email: { type: "string" } } },
+          orden: { type: "object", properties: { id: { type: "integer" }, total: { type: "number" }, referenciaPago: { type: "string", nullable: true } } },
+          validadaEn: { type: "string", format: "date-time" },
         },
       },
       ResumenAdmin: {

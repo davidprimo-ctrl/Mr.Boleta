@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
@@ -13,6 +13,9 @@ import {
 } from "../services/api";
 import type { DatosEvento, DatosLocalidad, Evento, ResumenAdmin, Usuario } from "../types";
 import { formatoCOP, formatoFecha } from "../utils/formato";
+
+// El lector QR (ZXing) es pesado: se descarga solo al abrir la pestaña.
+const ValidadorQR = lazy(() => import("./ValidadorQR"));
 
 type Estado = Evento["estado"];
 
@@ -55,7 +58,7 @@ export default function Admin() {
   const [perfil, setPerfil] = useState<Usuario | null>(null);
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [resumen, setResumen] = useState<ResumenAdmin | null>(null);
-  const [pestaña, setPestaña] = useState<"resumen" | "eventos" | "crear">("resumen");
+  const [pestaña, setPestaña] = useState<"resumen" | "eventos" | "crear" | "validar">("resumen");
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
@@ -163,6 +166,7 @@ export default function Admin() {
           ["resumen", "Resumen de ventas"],
           ["eventos", "Eventos y localidades"],
           ["crear", "Crear evento"],
+          ["validar", "Validar boletas (QR)"],
         ] as const).map(([clave, texto]) => (
           <button
             key={clave}
@@ -474,6 +478,13 @@ export default function Admin() {
             </article>
           ))}
         </section>
+      )}
+
+      {/* ── Check-in de boletas con cámara ── */}
+      {pestaña === "validar" && (
+        <Suspense fallback={<p className="mt-8 text-gray-400">Cargando lector QR...</p>}>
+          <ValidadorQR tokenDeSesion={tokenDeSesion} />
+        </Suspense>
       )}
 
       {/* ── Crear evento ── */}

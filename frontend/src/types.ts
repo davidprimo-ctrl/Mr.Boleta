@@ -59,6 +59,18 @@ export interface EventoResumen {
   cuposDisponibles: number;
 }
 
+/** Resultado del check-in de una boleta en el panel admin. */
+export interface BoletaValidada {
+  id: number;
+  codigoQr: string;
+  estado: "USADA";
+  evento: { id: number; nombre: string; fecha: string; lugar: string; ciudad: string };
+  localidad: string;
+  comprador: { nombre: string; email: string };
+  orden: { id: number; total: number; referenciaPago: string | null };
+  validadaEn: string;
+}
+
 export interface ResumenAdmin {
   totalVentas: number;
   ingresos: number;
