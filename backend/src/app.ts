@@ -5,6 +5,8 @@ import { pagosRouter } from "./routes/pagos.routes";
 import { adminRouter } from "./routes/admin.routes";
 import { requiereAuth, requiereAdmin } from "./middlewares/auth";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import { documentoOpenApi } from "./docs/openapi";
 
 import { eventosRouter } from "./routes/eventos.routes";
 
@@ -12,6 +14,15 @@ const app = express();
 
 app.use(cors());          // permite peticiones desde el frontend
 app.use(express.json());  // permite recibir JSON en el body
+
+// Documentación interactiva de la API (Swagger UI)
+app.get("/api/docs.json", (_req, res) => {
+    res.json(documentoOpenApi);
+});
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(documentoOpenApi, { customSiteTitle: "Mr.Boleta API" }));
+app.get("/", (_req, res) => {
+    res.redirect("/api/docs");
+});
 
 // Ruta de prueba para saber si el servidor está vivo
 app.get("/api/health", (_req, res) => {
