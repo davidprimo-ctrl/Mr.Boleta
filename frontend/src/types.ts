@@ -29,6 +29,45 @@ export interface Usuario {
   rol: "COMPRADOR" | "ADMIN";
 }
 
+/** Datos que envía el panel de administración al crear o editar un evento. */
+export interface DatosEvento {
+  nombre: string;
+  descripcion: string;
+  artista: string;
+  lugar: string;
+  ciudad: string;
+  fecha: string;
+  imagenUrl?: string | null;
+}
+
+export interface DatosLocalidad {
+  nombre: string;
+  precio: number;
+  aforo: number;
+}
+
+/** Resumen de un evento en el reporte HU09. */
+export interface EventoResumen {
+  id: number;
+  nombre: string;
+  fecha: string;
+  estado: Evento["estado"];
+  ventas: number;
+  ingresos: number;
+  boletasVendidas: number;
+  aforoTotal: number;
+  cuposDisponibles: number;
+}
+
+export interface ResumenAdmin {
+  totalVentas: number;
+  ingresos: number;
+  boletasVendidas: number;
+  aforoTotal: number;
+  cuposDisponibles: number;
+  eventos: EventoResumen[];
+}
+
 export type EstadoOrden = "PENDIENTE" | "APROBADA" | "RECHAZADA" | "EXPIRADA";
 
 export interface Boleta {

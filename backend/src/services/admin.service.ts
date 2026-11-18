@@ -20,6 +20,64 @@ export interface DatosLocalidad {
 
 const conLocalidades = { localidades: { orderBy: { precio: "desc" } } } as const;
 
+export interface ResumenEvento {
+  id: number;
+  nombre: string;
+  fecha: Date;
+  estado: EstadoEvento;
+  ventas: number;
+  ingresos: number;
+  boletasVendidas: number;
+  aforoTotal: number;
+  cuposDisponibles: number;
+}
+
+/**
+ * HU09: ventas, ingresos y cupos restantes.
+ * Solo cuentan las órdenes APROBADAS: las pendientes, rechazadas y expiradas no son ventas.
+ */
+export async function obtenerResumen() {
+  const [eventos, ordenes] = await Promise.all([
+    prisma.evento.findMany({ include: { localidades: true }, orderBy: { fecha: "asc" } }),
+    prisma.orden.findMany({
+      where: { estado: "APROBADA" },
+      select: {
+        eventoId: true,
+        total: true,
+        detalles: { select: { cantidad: true, boletas: { select: { id: true } } } },
+      },
+    }),
+  ]);
+
+  const porEvento = new Map<number, { ventas: number; ingresos: number; boletasVendidas: number }>();
+  for (const orden of ordenes) {
+    const actual = porEvento.get(orden.eventoId) ?? { ventas: 0, ingresos: 0, boletasVendidas: 0 };
+    actual.ventas += 1;
+    actual.ingresos += Number(orden.total);
+    actual.boletasVendidas += orden.detalles.reduce((suma, d) => suma + d.boletas.length, 0);
+    porEvento.set(orden.eventoId, actual);
+  }
+
+  const detalle: ResumenEvento[] = eventos.map((evento) => ({
+    id: evento.id,
+    nombre: evento.nombre,
+    fecha: evento.fecha,
+    estado: evento.estado,
+    ...(porEvento.get(evento.id) ?? { ventas: 0, ingresos: 0, boletasVendidas: 0 }),
+    aforoTotal: evento.localidades.reduce((suma, l) => suma + l.aforo, 0),
+    cuposDisponibles: evento.localidades.reduce((suma, l) => suma + l.cuposDisponibles, 0),
+  }));
+
+  return {
+    totalVentas: ordenes.length,
+    ingresos: ordenes.reduce((suma, o) => suma + Number(o.total), 0),
+    boletasVendidas: detalle.reduce((suma, e) => suma + e.boletasVendidas, 0),
+    aforoTotal: detalle.reduce((suma, e) => suma + e.aforoTotal, 0),
+    cuposDisponibles: detalle.reduce((suma, e) => suma + e.cuposDisponibles, 0),
+    eventos: detalle,
+  };
+}
+
 /** Todos los eventos, en cualquier estado (el catálogo público solo ve los publicados). */
 export function listarEventos() {
   return prisma.evento.findMany({ include: conLocalidades, orderBy: { fecha: "asc" } });
