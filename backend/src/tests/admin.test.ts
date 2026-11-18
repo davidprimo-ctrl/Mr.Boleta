@@ -1,6 +1,7 @@
 import request from "supertest";
 import app from "../app";
 import * as admin from "../services/admin.service";
+import * as boletas from "../services/boletas.service";
 
 jest.mock("../services/admin.service", () => ({
   listarEventos: jest.fn(async () => [{ id: 7, nombre: "Noche de Salsa Brava", estado: "PUBLICADO", localidades: [] }]),
@@ -17,6 +18,19 @@ jest.mock("../services/admin.service", () => ({
     aforoTotal: 200,
     cuposDisponibles: 193,
     eventos: [{ id: 7, nombre: "Noche de Salsa Brava", ventas: 3, ingresos: 450000 }],
+  })),
+}));
+
+jest.mock("../services/boletas.service", () => ({
+  validarBoleta: jest.fn(async (codigoQr: string) => ({
+    id: 21,
+    codigoQr,
+    estado: "USADA",
+    localidad: "VIP",
+    evento: { id: 7, nombre: "Salsa Brava" },
+    comprador: { nombre: "David", email: "david@example.com" },
+    orden: { id: 15, total: 220000, referenciaPago: "MOCK-15" },
+    validadaEn: new Date().toISOString(),
   })),
 }));
 
@@ -100,5 +114,26 @@ describe("API del panel de administrador", () => {
   it("valida el id de la ruta", async () => {
     const res = await comoAdmin(request(app).get("/api/admin/eventos/abc"));
     expect(res.status).toBe(400);
+  });
+
+  it("exige ADMIN para validar boletas", async () => {
+    const res = await request(app).post("/api/admin/boletas/validar").send({ codigoQr: "abc" });
+    expect(res.status).toBe(401);
+    const prohibido = await comoComprador(request(app).post("/api/admin/boletas/validar").send({ codigoQr: "abc" }));
+    expect(prohibido.status).toBe(403);
+  });
+
+  it("rechaza un QR vacío con 400", async () => {
+    const res = await comoAdmin(request(app).post("/api/admin/boletas/validar").send({}));
+    expect(res.status).toBe(400);
+    expect(boletas.validarBoleta).not.toHaveBeenCalled();
+  });
+
+  it("valida un QR y devuelve los datos de la boleta", async () => {
+    const res = await comoAdmin(request(app).post("/api/admin/boletas/validar").send({ codigoQr: "uuid-123" }));
+    expect(res.status).toBe(200);
+    expect(res.body.estado).toBe("USADA");
+    expect(res.body.localidad).toBe("VIP");
+    expect(boletas.validarBoleta).toHaveBeenCalledWith("uuid-123");
   });
 });

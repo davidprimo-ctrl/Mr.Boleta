@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { HttpError } from "../lib/errores";
 import * as admin from "../services/admin.service";
+import { validarBoleta } from "../services/boletas.service";
 
 export const adminRouter = Router();
 
@@ -67,6 +68,15 @@ const cuerpo = (body: unknown) => (body ?? {}) as Cuerpo;
 // GET /api/admin/resumen → ventas, ingresos y cupos restantes por evento (HU09)
 adminRouter.get("/resumen", async (_req, res) => {
   res.json(await admin.obtenerResumen());
+});
+
+// POST /api/admin/boletas/validar → check-in: marca la boleta como USADA (evita duplicados)
+adminRouter.post("/boletas/validar", async (req, res) => {
+  const { codigoQr } = cuerpo(req.body);
+  if (typeof codigoQr !== "string" || codigoQr.trim() === "") {
+    throw new HttpError(400, 'Se espera { "codigoQr": "..." }');
+  }
+  res.json(await validarBoleta(codigoQr));
 });
 
 // GET /api/admin/eventos → todos los eventos

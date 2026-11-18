@@ -1,6 +1,7 @@
 import type {
   DatosEvento,
   DatosLocalidad,
+  BoletaValidada,
   Evento,
   Orden,
   ResumenAdmin,
@@ -105,4 +106,9 @@ export function actualizarLocalidadAdmin(token: string, id: number, datos: Parti
 /** HU09: ventas, ingresos y cupos restantes. */
 export function obtenerResumenAdmin(token: string) {
   return pedir<ResumenAdmin>("/admin/resumen", token);
+}
+
+/** Check-in: valida una boleta desde su QR. Si ya fue usada, el backend responde 409. */
+export function validarBoletaAdmin(token: string, codigoQr: string) {
+  return pedir<BoletaValidada>("/admin/boletas/validar", token, "POST", { codigoQr });
 }
