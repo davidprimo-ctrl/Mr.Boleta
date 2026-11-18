@@ -64,6 +64,11 @@ const cuerpo = (body: unknown) => (body ?? {}) as Cuerpo;
 
 // ─────────── Rutas ───────────
 
+// GET /api/admin/resumen → ventas, ingresos y cupos restantes por evento (HU09)
+adminRouter.get("/resumen", async (_req, res) => {
+  res.json(await admin.obtenerResumen());
+});
+
 // GET /api/admin/eventos → todos los eventos
 adminRouter.get("/eventos", async (_req, res) => {
   res.json(await admin.listarEventos());
