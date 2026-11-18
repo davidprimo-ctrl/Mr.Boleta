@@ -1,4 +1,11 @@
-import type { Evento, Orden, Usuario } from "../types";
+import type {
+  DatosEvento,
+  DatosLocalidad,
+  Evento,
+  Orden,
+  ResumenAdmin,
+  Usuario,
+} from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
@@ -53,4 +60,49 @@ export function obtenerOrden(token: string, id: string | number) {
 /** Inicia el pago de una orden: devuelve la URL de la pasarela. */
 export function iniciarPago(token: string, ordenId: number) {
   return pedir<{ urlPago: string }>(`/pagos/ordenes/${ordenId}`, token, "POST");
+}
+
+/** Todas las órdenes del usuario que inició sesión (con sus boletas). */
+export function obtenerMisOrdenes(token: string) {
+  return pedir<Orden[]>("/ordenes", token);
+}
+
+// ───── Panel de administrador (solo rol ADMIN) ─────
+
+/** Todos los eventos, incluidos borradores e inactivos. */
+export function listarEventosAdmin(token: string) {
+  return pedir<Evento[]>("/admin/eventos", token);
+}
+
+/** Crea un evento en BORRADOR con sus localidades. */
+export function crearEventoAdmin(
+  token: string,
+  datos: DatosEvento & { localidades: DatosLocalidad[] },
+) {
+  return pedir<Evento>("/admin/eventos", token, "POST", datos);
+}
+
+/** Edita los campos enviados de un evento. */
+export function actualizarEventoAdmin(token: string, id: number, datos: Partial<DatosEvento>) {
+  return pedir<Evento>(`/admin/eventos/${id}`, token, "PUT", datos);
+}
+
+/** Publica, vuelve a borrador o desactiva un evento. */
+export function cambiarEstadoEvento(token: string, id: number, estado: Evento["estado"]) {
+  return pedir<Evento>(`/admin/eventos/${id}/estado`, token, "PATCH", { estado });
+}
+
+/** Agrega una localidad a un evento. */
+export function agregarLocalidadAdmin(token: string, eventoId: number, datos: DatosLocalidad) {
+  return pedir<Evento>(`/admin/eventos/${eventoId}/localidades`, token, "POST", datos);
+}
+
+/** Edita nombre, precio y/o aforo de una localidad. */
+export function actualizarLocalidadAdmin(token: string, id: number, datos: Partial<DatosLocalidad>) {
+  return pedir<Evento>(`/admin/localidades/${id}`, token, "PUT", datos);
+}
+
+/** HU09: ventas, ingresos y cupos restantes. */
+export function obtenerResumenAdmin(token: string) {
+  return pedir<ResumenAdmin>("/admin/resumen", token);
 }

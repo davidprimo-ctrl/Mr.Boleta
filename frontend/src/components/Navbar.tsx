@@ -46,7 +46,9 @@ export default function Navbar() {
               )}
               <span className="hidden md:inline">{user?.name}</span>
               {perfil?.rol === "ADMIN" && (
-                <span className="text-xs bg-brand-500 px-2 py-0.5 rounded">Admin</span>
+                <Link to="/admin" className="text-xs bg-brand-500 px-2 py-0.5 rounded hover:bg-brand-400">
+                  Admin
+                </Link>
               )}
               <button
                 onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}

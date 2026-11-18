@@ -17,6 +17,15 @@ export const env = {
   PORT: Number(process.env.PORT) || 3000,
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
   API_URL: process.env.API_URL || "http://localhost:3000",
+  
+  // Correo (SMTP). Sin SMTP_HOST se usa una cuenta de prueba de Ethereal
+  correo: {
+    host: process.env.SMTP_HOST || "",
+    port: Number(process.env.SMTP_PORT) || 587,
+    user: process.env.SMTP_USER || "",
+    pass: process.env.SMTP_PASS || "",
+    remitente: process.env.CORREO_REMITENTE || "Mr.Boleta <no-responder@mrboleta.com>",
+  },
 
   // Base de datos PostgreSQL (Neon)
   DATABASE_URL: requerida("DATABASE_URL"),
