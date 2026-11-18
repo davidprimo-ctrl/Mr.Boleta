@@ -34,7 +34,7 @@ export const prisma: ClienteFalso = {
     updateMany: jest.fn(),
   },
   detalleOrden: { findMany: jest.fn() },
-  boleta: { findMany: jest.fn(), createMany: jest.fn() },
+  boleta: { findMany: jest.fn(), findUnique: jest.fn(), updateMany: jest.fn(), createMany: jest.fn() },
   usuario: { findUnique: jest.fn(), upsert: jest.fn() },
   // Las transacciones ejecutan la callback con este mismo cliente falso.
   $transaction: jest.fn(async (callback: (cliente: ClienteFalso) => unknown) => callback(prisma)),

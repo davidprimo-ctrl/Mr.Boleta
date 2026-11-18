@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 import * as ordenes from "../services/ordenes.service";
 import * as pagos from "../services/pagos.service";
 import * as admin from "../services/admin.service";
+import { validarBoleta } from "../services/boletas.service";
 import { enviarBoletasPorCorreo } from "../services/correo.service";
 
 jest.mock("../services/correo.service", () => ({
@@ -115,6 +116,71 @@ describe("Lógica de negocio", () => {
         where: { id: 8 },
         data: { cuposDisponibles: { increment: 2 } },
       });
+    });
+  });
+
+  describe("Check-in de boletas", () => {
+    const boletaActiva = {
+      id: 21,
+      codigoQr: "uuid-123",
+      estado: "ACTIVA",
+      detalleOrden: {
+        localidad: { nombre: "VIP" },
+        orden: {
+          id: 15,
+          estado: "APROBADA",
+          total: 220000,
+          referenciaPago: "MOCK-15",
+          evento: { id: 7, nombre: "Salsa Brava", fecha: new Date(), lugar: "Coliseo", ciudad: "Ibagué" },
+          usuario: { nombre: "David", email: "david@example.com" },
+        },
+      },
+    };
+
+    it("marca la boleta como USADA y devuelve sus datos", async () => {
+      (prisma.boleta.findUnique as jest.Mock).mockResolvedValue(boletaActiva);
+      (prisma.boleta.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+      const resultado = await validarBoleta("  uuid-123  ");
+
+      expect(prisma.boleta.findUnique).toHaveBeenCalledWith({ where: { codigoQr: "uuid-123" }, include: expect.anything() });
+      expect(prisma.boleta.updateMany).toHaveBeenCalledWith({
+        where: { id: 21, estado: "ACTIVA" },
+        data: { estado: "USADA" },
+      });
+      expect(resultado).toEqual(expect.objectContaining({ id: 21, estado: "USADA", localidad: "VIP" }));
+      expect(resultado.comprador.email).toBe("david@example.com");
+      expect(resultado.evento.nombre).toBe("Salsa Brava");
+    });
+
+    it("rechaza una boleta ya usada con 409", async () => {
+      (prisma.boleta.findUnique as jest.Mock).mockResolvedValue({ ...boletaActiva, estado: "USADA" });
+
+      await expect(validarBoleta("uuid-123")).rejects.toMatchObject({ status: 409 });
+      expect(prisma.boleta.updateMany).not.toHaveBeenCalled();
+    });
+
+    it("no marca dos veces si otro escaneo ganó la carrera", async () => {
+      (prisma.boleta.findUnique as jest.Mock).mockResolvedValue(boletaActiva);
+      (prisma.boleta.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
+
+      await expect(validarBoleta("uuid-123")).rejects.toMatchObject({ status: 409 });
+    });
+
+    it("rechaza boletas de órdenes no aprobadas", async () => {
+      (prisma.boleta.findUnique as jest.Mock).mockResolvedValue({
+        ...boletaActiva,
+        detalleOrden: { ...boletaActiva.detalleOrden, orden: { ...boletaActiva.detalleOrden.orden, estado: "PENDIENTE" } },
+      });
+
+      await expect(validarBoleta("uuid-123")).rejects.toMatchObject({ status: 409 });
+      expect(prisma.boleta.updateMany).not.toHaveBeenCalled();
+    });
+
+    it("responde 404 si el QR no existe y 400 si viene vacío", async () => {
+      (prisma.boleta.findUnique as jest.Mock).mockResolvedValue(null);
+      await expect(validarBoleta("no-existe")).rejects.toMatchObject({ status: 404 });
+      await expect(validarBoleta("   ")).rejects.toMatchObject({ status: 400 });
     });
   });
 

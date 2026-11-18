@@ -12,7 +12,8 @@ Versión `v0.3.0`. Alcance: **Swagger**, **panel de administrador**, **reporte d
 | Swagger / OpenAPI (issue #29) | No existía | `backend/src/docs/openapi.ts` + UI en `/api/docs` |
 | Panel admin (interfaz) | No existía | `frontend/src/pages/Admin.tsx` en `/admin` |
 | Reporte HU09 | No existía | `GET /api/admin/resumen` + pestaña "Resumen de ventas" |
-| Pruebas Jest + Supertest (issue #28) | No existían | 38 pruebas en `backend/src/tests/` |
+| Check-in de boletas con QR | No existía | Cámara en `/admin` + `POST /api/admin/boletas/validar` |
+| Pruebas Jest + Supertest (issue #28) | No existían | 46 pruebas en `backend/src/tests/` |
 
 ## Cómo se usa
 
@@ -39,6 +40,24 @@ Pestañas:
 - **Resumen de ventas**: total de ventas aprobadas, ingresos en COP, boletas vendidas y cupos restantes por evento (HU09).
 - **Eventos y localidades**: publicar / pasar a borrador / desactivar, editar datos del evento, editar nombre/precio/aforo de cada localidad y agregar localidades.
 - **Crear evento**: formulario con una o más localidades; queda en BORRADOR hasta que se publique.
+- **Validar boletas (QR)**: check-in con la cámara del celular.
+
+### Check-in de boletas (control de entrada)
+
+En la pestaña **Validar boletas (QR)** del panel, pulsa **Activar cámara** y apunta al QR de cada boleta.
+Se mantiene abierta para escanear varias seguidas; al acertar suena un tono agudo y al fallar uno grave.
+Si el celular no da permiso, existe un campo de código manual con el mismo resultado.
+
+El backend (`POST /api/admin/boletas/validar`, documentado en Swagger):
+
+1. Busca la boleta por `codigoQr`.
+2. Rechaza con **409** si ya está `USADA`, si está `ANULADA` o si su orden no está `APROBADA`.
+3. Cambia el estado a `USADA` con `updateMany` condicional (`where: { id, estado: "ACTIVA" }`): aunque dos
+   escaneos lleguen al mismo tiempo, solo el primero marca la boleta.
+4. Devuelve evento, fecha, localidad, comprador y orden de esa boleta.
+
+> La cámara solo funciona en contexto seguro (HTTPS). Vercel ya sirve HTTPS; en local, `localhost` también vale.
+> Para probar en el celular conectado a la PC, hay que usar túnel HTTPS (por ejemplo `ngrok`), no la IP de la red.
 
 Reglas que aplica el backend: no se pueden publicar eventos sin localidades; no se puede bajar el aforo por
 debajo de lo vendido o reservado; los eventos no se borran, se desactivan para conservar órdenes y boletas.
@@ -48,7 +67,7 @@ debajo de lo vendido o reservado; los eventos no se borran, se desactivan para c
 ```bash
 cd backend
 npm install
-npm test              # 38 pruebas, 6 suites
+npm test              # 46 pruebas, 6 suites
 npm run test:coverage # reporte en backend/coverage
 ```
 
@@ -57,7 +76,7 @@ No requieren base de datos ni Auth0: `src/tests/setupEnv.ts` define variables de
 
 Cobertura principal: health y Swagger, catálogo, 401/403 de administración, creación/lectura de órdenes,
 pasarela simulada (aprobar, rechazar, vencida) y reglas de negocio (reserva atómica, expiración,
-generación de boletas, envío de correo y cálculo del reporte).
+generación de boletas, envío de correo, cálculo del reporte y check-in sin duplicados).
 
 ## Decisiones y límites
 
