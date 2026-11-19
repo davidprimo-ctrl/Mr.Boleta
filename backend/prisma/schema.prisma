@@ -86,7 +86,7 @@ model Orden {
   estado         EstadoOrden @default(PENDIENTE)
   total          Decimal     @db.Decimal(12, 2)
   expiraEn       DateTime // creadoEn + 10 minutos
-  referenciaPago String?     @unique // referencia del pago (mock o Wompi)
+  referenciaPago String?     @unique // referencia del pago (mock o Mercado Pago)
   creadoEn       DateTime    @default(now())
 
   usuarioId Int

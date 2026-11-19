@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router";
 import { useAuth0 } from "@auth0/auth0-react";
 import { QRCodeSVG } from "qrcode.react";
-import { iniciarPago, obtenerOrden } from "../services/api";
+import { confirmarPagoMercadoPago, iniciarPago, obtenerOrden } from "../services/api";
 import type { EstadoOrden, Orden } from "../types";
 import { formatoCOP, formatoFecha } from "../utils/formato";
 
@@ -15,30 +15,77 @@ const ESTADOS: Record<EstadoOrden, { texto: string; clase: string }> = {
 
 export default function PaginaOrden() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const paymentId = searchParams.get("payment_id");
   const { isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
   const [orden, setOrden] = useState<Orden | null>(null);
   const [error, setError] = useState("");
   const [ahora, setAhora] = useState(() => Date.now());
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState("");
+  const [confirmandoPago, setConfirmandoPago] = useState(Boolean(paymentId));
+  const confirmadoRef = useRef<string | null>(null);
 
-  // Cargar la orden (requiere sesión)
+  // Cargar la orden (requiere sesión). Si vuelve de Mercado Pago, confirma el pago primero.
   useEffect(() => {
     if (isLoading || !isAuthenticated || !id) return;
-    getAccessTokenSilently()
-      .then((token) => {
+    let activo = true;
+
+    (async () => {
+      try {
+        const token = await getAccessTokenSilently();
         if (!token) throw new Error("No se obtuvo el token de Auth0");
-        return obtenerOrden(token, id);
-      })
-      .then(setOrden)
-      .catch((e: Error) => setError(e.message));
-  }, [id, isAuthenticated, isLoading, getAccessTokenSilently]);
+
+        if (paymentId && confirmadoRef.current !== paymentId) {
+          confirmadoRef.current = paymentId;
+          setConfirmandoPago(true);
+          try {
+            await confirmarPagoMercadoPago(token, paymentId);
+          } catch (e) {
+            // Si Mercado Pago aún no reporta el pago, igual mostramos la orden.
+            console.warn("No se pudo confirmar el pago:", (e as Error).message);
+          } finally {
+            // Quita payment_id de la URL para que recargar no repita la confirmación.
+            window.history.replaceState({}, "", `/ordenes/${id}`);
+          }
+        }
+
+        const datos = await obtenerOrden(token, id);
+        if (activo) setOrden(datos);
+      } catch (e) {
+        if (activo) setError((e as Error).message);
+      } finally {
+        if (activo) setConfirmandoPago(false);
+      }
+    })();
+
+    return () => {
+      activo = false;
+    };
+  }, [id, paymentId, isAuthenticated, isLoading, getAccessTokenSilently]);
 
   // Reloj: se actualiza cada segundo para el contador
   useEffect(() => {
     const reloj = setInterval(() => setAhora(Date.now()), 1000);
     return () => clearInterval(reloj);
   }, []);
+
+  // Si el pago quedó pendiente, refresca la orden para reflejar el webhook de Mercado Pago.
+  useEffect(() => {
+    if (!isAuthenticated || !id || orden?.estado !== "PENDIENTE") return;
+    const temporizador = setInterval(() => {
+      void (async () => {
+        try {
+          const token = await getAccessTokenSilently();
+          if (!token) return;
+          setOrden(await obtenerOrden(token, id));
+        } catch {
+          // Se reintenta en el siguiente intervalo.
+        }
+      })();
+    }, 5000);
+    return () => clearInterval(temporizador);
+  }, [id, isAuthenticated, orden?.estado, getAccessTokenSilently]);
 
   if (!isLoading && !isAuthenticated) {
     return <p className="max-w-3xl mx-auto px-4 py-12">Inicia sesión para ver tu orden.</p>;
@@ -82,6 +129,12 @@ export default function PaginaOrden() {
       <span className={`inline-block mt-4 px-3 py-1 rounded-full text-sm font-semibold ${estado.clase}`}>
         {estado.texto}
       </span>
+
+      {confirmandoPago && (
+        <p className="mt-4 bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 text-blue-200 text-sm">
+          Confirmando tu pago con Mercado Pago...
+        </p>
+      )}
 
       {/* Contador de la reserva */}
       {orden.estado === "PENDIENTE" && !vencida && (

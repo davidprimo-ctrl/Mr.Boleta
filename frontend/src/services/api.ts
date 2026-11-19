@@ -63,6 +63,16 @@ export function iniciarPago(token: string, ordenId: number) {
   return pedir<{ urlPago: string }>(`/pagos/ordenes/${ordenId}`, token, "POST");
 }
 
+/** Confirma el pago al volver del checkout de Mercado Pago (payment_id de la URL). */
+export function confirmarPagoMercadoPago(token: string, paymentId: string) {
+  return pedir<{ ok: boolean; ordenId: number | null; estadoPago: string; accion: string }>(
+    "/pagos/mercadopago/confirmar",
+    token,
+    "POST",
+    { paymentId },
+  );
+}
+
 /** Todas las órdenes del usuario que inició sesión (con sus boletas). */
 export function obtenerMisOrdenes(token: string) {
   return pedir<Orden[]>("/ordenes", token);

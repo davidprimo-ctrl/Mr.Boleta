@@ -8,3 +8,6 @@ process.env.AUTH0_AUDIENCE ||= "https://api.mrboleta.test";
 process.env.API_URL ||= "http://localhost:3000";
 process.env.FRONTEND_URL ||= "http://localhost:5173";
 process.env.PAYMENT_PROVIDER ||= "mock";
+// Token ficticio para probar el adaptador de Mercado Pago sin red ni credenciales reales.
+process.env.MP_ACCESS_TOKEN ||= "TEST-token-de-prueba";
+process.env.MP_WEBHOOK_SECRET ||= "";
