@@ -31,6 +31,7 @@ export const prisma: ClienteFalso = {
     findFirst: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
     updateMany: jest.fn(),
   },
   detalleOrden: { findMany: jest.fn() },

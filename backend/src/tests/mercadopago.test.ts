@@ -29,14 +29,14 @@ afterAll(() => {
 });
 
 describe("Mercado Pago (Checkout Pro)", () => {
-  it("crea una preferencia en COP y usa sandbox_init_point con credenciales TEST", async () => {
+  it("crea una preferencia en COP y devuelve el init_point de Checkout Pro", async () => {
     fetchMock.mockResolvedValue(
       respuesta({ init_point: "https://mp/init", sandbox_init_point: "https://mp/sandbox" }),
     );
 
     const { urlPago } = await pasarelaMercadoPago.iniciarPago({ id: 15, total: 120000 });
 
-    expect(urlPago).toBe("https://mp/sandbox");
+    expect(urlPago).toBe("https://mp/init");
     const [url, opciones] = fetchMock.mock.calls[0];
     expect(url).toBe("https://api.mercadopago.com/checkout/preferences");
     expect(opciones.headers.Authorization).toBe("Bearer TEST-token-de-prueba");

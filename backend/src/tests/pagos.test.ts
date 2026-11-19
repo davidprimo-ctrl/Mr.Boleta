@@ -42,6 +42,10 @@ describe("Pagos (pasarela simulada)", () => {
     expect(res.status).toBe(200);
     expect(res.body.urlPago).toContain("/api/pagos/mock/10");
     expect(pasarela.iniciarPago).toHaveBeenCalledWith({ id: 10, total: 80000 });
+    expect(prisma.orden.update).toHaveBeenCalledWith({
+      where: { id: 10 },
+      data: { expiraEn: expect.any(Date) },
+    });
   });
 
   it("rechaza 409 si la reserva ya venció", async () => {
@@ -86,7 +90,7 @@ describe("Pagos (Mercado Pago)", () => {
     expect(res.body).toMatchObject({
       proveedor: "mock",
       configurado: true,
-      modo: "prueba",
+      checkout: "Checkout Pro",
       webhook: "http://localhost:3000/api/pagos/mercadopago/webhook",
     });
     expect(JSON.stringify(res.body)).not.toContain("TEST-token-de-prueba");

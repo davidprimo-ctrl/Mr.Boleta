@@ -6,6 +6,7 @@ import { requiereAuth } from "../middlewares/auth";
 import { pasarela } from "../services/pagos";
 import { firmaWebhookValida, procesarPagoMercadoPago } from "../services/pagos/mercadopago";
 import { aprobarOrden, rechazarOrden } from "../services/pagos.service";
+import { MINUTOS_RESERVA } from "../services/ordenes.service";
 
 export const pagosRouter = Router();
 
@@ -26,6 +27,14 @@ pagosRouter.post("/ordenes/:id", async (req, res) => {
   if (orden.estado !== "PENDIENTE" || orden.expiraEn < new Date()) {
     throw new HttpError(409, "La reserva ya no está vigente");
   }
+
+  // Al abrir el checkout se renueva la ventana: el comprador tiene otros 10 minutos
+  // para pagar en Mercado Pago sin que el limpiador de órdenes le quite los cupos.
+  await prisma.orden.update({
+    where: { id: orden.id },
+    data: { expiraEn: new Date(Date.now() + MINUTOS_RESERVA * 60_000) },
+  });
+
   res.json(await pasarela.iniciarPago({ id: orden.id, total: Number(orden.total) }));
 });
 
@@ -61,7 +70,9 @@ pagosRouter.get("/mercadopago/config", (_req, res) => {
   res.json({
     proveedor: env.PAYMENT_PROVIDER,
     configurado: Boolean(token),
-    modo: token.startsWith("TEST-") ? "prueba" : token ? "produccion" : "sin_token",
+    checkout: "Checkout Pro",
+    // El entorno (prueba/producción) lo define la pestaña de credenciales usada,
+    // no el prefijo: Mercado Pago usa APP_USR- en ambos casos.
     webhook: `${env.API_URL.replace(/\/+$/, "")}/api/pagos/mercadopago/webhook`,
   });
 });

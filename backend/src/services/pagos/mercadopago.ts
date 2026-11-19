@@ -20,7 +20,6 @@ export interface PagoMP {
 }
 
 const TEXTO_TIMEOUT = 15_000;
-const usaCredencialesDePrueba = () => env.mercadopago.accessToken.startsWith("TEST-");
 
 async function leerError(respuesta: Response) {
   try {
@@ -75,7 +74,9 @@ export const pasarelaMercadoPago: PasarelaPago = {
     }
 
     const datos = (await respuesta.json()) as PreferenciaMP;
-    const urlPago = usaCredencialesDePrueba() ? datos.sandbox_init_point : datos.init_point;
+    // Checkout Pro usa init_point también con credenciales de prueba: el entorno lo
+    // determina la pestaña (Prueba/Producción) de donde se copió el token.
+    const urlPago = datos.init_point ?? datos.sandbox_init_point;
     if (!urlPago) throw new HttpError(502, "Mercado Pago no devolvió la URL de pago");
     return { urlPago };
   },

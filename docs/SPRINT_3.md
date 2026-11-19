@@ -74,11 +74,12 @@ Variables (en `backend/.env` local y en Render):
 
 ```env
 PAYMENT_PROVIDER=mercadopago
-MP_ACCESS_TOKEN=TEST-...
+MP_ACCESS_TOKEN=APP_USR-...   # el de la pestaña "Prueba" para la demo
 MP_WEBHOOK_SECRET=        # opcional; si se configura, se valida la firma x-signature
 ```
 
-- Con token `TEST-` se usa `sandbox_init_point` (dinero de prueba). Con `APP_USR-` se usa `init_point`.
+- Mercado Pago usa `APP_USR-` tanto en credenciales de prueba como de producción: el entorno lo define la
+  pestaña **Prueba/Producción** de donde copiaste el token, no el prefijo. Checkout Pro utiliza `init_point`.
 - La URL del webhook se envía en cada preferencia: `${API_URL}/api/pagos/mercadopago/webhook`.
 - `PAYMENT_PROVIDER=mock` sigue disponible como respaldo para la demo.
 
@@ -101,8 +102,9 @@ reporte y check-in sin duplicados).
 
 ## Decisiones y límites
 
-- **Mercado Pago** es la pasarela activa (`PAYMENT_PROVIDER=mercadopago`). Con credenciales de prueba (`TEST-`)
-  no se mueve dinero real; para cobrar de verdad hay que activar credenciales productivas y verificar la cuenta.
+- **Mercado Pago** es la pasarela activa (`PAYMENT_PROVIDER=mercadopago`). Con credenciales de la pestaña
+  **Prueba** (también empiezan por `APP_USR-`) no se mueve dinero real; para cobrar de verdad hay que usar
+  las credenciales de **Producción** y verificar la cuenta.
 - **Modo simulado** sigue disponible (`PAYMENT_PROVIDER=mock`) como respaldo para la demo si Mercado Pago falla.
 - **Correo** usa Ethereal por defecto (vista previa, no llega a bandejas reales). Para correo real hay que
   configurar `SMTP_*` en `backend/.env` y en Render; nunca subir credenciales a GitHub.
