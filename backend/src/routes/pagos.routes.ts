@@ -65,16 +65,43 @@ if (env.PAYMENT_PROVIDER === "mock") {
 // ─── Mercado Pago (Checkout Pro) ───
 
 // GET /api/pagos/mercadopago/config → diagnóstico sin exponer el token
-pagosRouter.get("/mercadopago/config", (_req, res) => {
+pagosRouter.get("/mercadopago/config", async (req: Request, res: Response) => {
   const token = env.mercadopago.accessToken;
-  res.json({
+  const base = {
     proveedor: env.PAYMENT_PROVIDER,
     configurado: Boolean(token),
     checkout: "Checkout Pro",
     // El entorno (prueba/producción) lo define la pestaña de credenciales usada,
     // no el prefijo: Mercado Pago usa APP_USR- en ambos casos.
     webhook: `${env.API_URL.replace(/\/+$/, "")}/api/pagos/mercadopago/webhook`,
-  });
+  };
+
+  // ?verificar=1 consulta /users/me para comprobar que el token es válido.
+  if (req.query.verificar !== "1" || !token) {
+    res.json(base);
+    return;
+  }
+
+  try {
+    const respuesta = await fetch(`${env.mercadopago.apiUrl}/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!respuesta.ok) {
+      res.status(502).json({ ...base, valido: false, status: respuesta.status });
+      return;
+    }
+    const cuenta = (await respuesta.json()) as { email?: string; country_id?: string; site_id?: string };
+    res.json({
+      ...base,
+      valido: true,
+      pais: cuenta.country_id ?? cuenta.site_id ?? null,
+      // Las cuentas de prueba de Mercado Pago usan correos @testuser.com.
+      cuentaDePrueba: typeof cuenta.email === "string" && /test_?user/i.test(cuenta.email),
+    });
+  } catch {
+    res.status(502).json({ ...base, valido: false });
+  }
 });
 
 // POST/GET /api/pagos/mercadopago/webhook → aviso de pago de Mercado Pago (sin sesión)
