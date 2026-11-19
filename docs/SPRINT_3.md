@@ -88,7 +88,7 @@ MP_WEBHOOK_SECRET=        # opcional; si se configura, se valida la firma x-sign
 ```bash
 cd backend
 npm install
-npm test              # 60 pruebas, 7 suites
+npm test              # 61 pruebas, 7 suites
 npm run test:coverage # reporte en backend/coverage
 ```
 

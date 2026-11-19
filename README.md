@@ -16,7 +16,7 @@ Tiquetera virtual para eventos musicales. Versión actual: **v0.3.0** (Sprint 3)
 - **Reporte de ventas (HU09):** pestaña "Resumen de ventas" del panel; API en `GET /api/admin/resumen`.
 - **Check-in con QR:** pestaña "Validar boletas (QR)" del panel: la cámara del celular escanea cada boleta, la marca como usada y rechaza duplicados; API en `POST /api/admin/boletas/validar`.
 - **Pagos con Mercado Pago:** Checkout Pro en COP, con confirmación al volver y webhook idempotente. Se activa con `PAYMENT_PROVIDER=mercadopago` y `MP_ACCESS_TOKEN`.
-- **Pruebas automáticas:** 60 pruebas con Jest + Supertest.
+- **Pruebas automáticas:** 61 pruebas con Jest + Supertest.
 
 Detalle completo: [docs/SPRINT_3.md](docs/SPRINT_3.md).
 
