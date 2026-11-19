@@ -36,23 +36,19 @@ export const env = {
     audience: requerida("AUTH0_AUDIENCE"),
   },
 
-  // Pasarela de pagos: "mock" (simulada) o "wompi" (sandbox real)
+  // Pasarela de pagos: "mock" (simulada) o "mercadopago" (Checkout Pro)
   PAYMENT_PROVIDER: process.env.PAYMENT_PROVIDER || "mock",
 
-  // Wompi: solo es obligatorio si PAYMENT_PROVIDER=wompi
-  wompi: {
-    apiUrl: process.env.WOMPI_API_URL || "https://sandbox.wompi.co/v1",
-    publicKey: process.env.WOMPI_PUBLIC_KEY || "",
-    privateKey: process.env.WOMPI_PRIVATE_KEY || "",
-    eventsSecret: process.env.WOMPI_EVENTS_SECRET || "",
-    integritySecret: process.env.WOMPI_INTEGRITY_SECRET || "",
+  // Mercado Pago: el access token solo es obligatorio si PAYMENT_PROVIDER=mercadopago
+  mercadopago: {
+    apiUrl: process.env.MP_API_URL || "https://api.mercadopago.com",
+    accessToken: (process.env.MP_ACCESS_TOKEN || "").trim(),
+    // Opcional: si se configura, se valida la firma de los webhooks
+    webhookSecret: (process.env.MP_WEBHOOK_SECRET || "").trim(),
   },
 };
 
-// Si se eligió Wompi, sus llaves sí son obligatorias
-if (env.PAYMENT_PROVIDER === "wompi") {
-  requerida("WOMPI_PUBLIC_KEY");
-  requerida("WOMPI_PRIVATE_KEY");
-  requerida("WOMPI_EVENTS_SECRET");
-  requerida("WOMPI_INTEGRITY_SECRET");
+// Si se eligió Mercado Pago, su access token sí es obligatorio
+if (env.PAYMENT_PROVIDER === "mercadopago") {
+  requerida("MP_ACCESS_TOKEN");
 }

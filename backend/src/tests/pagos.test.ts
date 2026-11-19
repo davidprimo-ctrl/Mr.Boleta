@@ -3,9 +3,16 @@ import app from "../app";
 import { prisma } from "../lib/prisma";
 import { pasarela } from "../services/pagos";
 import { aprobarOrden, rechazarOrden } from "../services/pagos.service";
+import { firmaWebhookValida, procesarPagoMercadoPago } from "../services/pagos/mercadopago";
 
 jest.mock("../services/pagos", () => ({
   pasarela: { iniciarPago: jest.fn(async () => ({ urlPago: "http://localhost:3000/api/pagos/mock/10" })) },
+}));
+
+jest.mock("../services/pagos/mercadopago", () => ({
+  pasarelaMercadoPago: { iniciarPago: jest.fn() },
+  procesarPagoMercadoPago: jest.fn(async () => ({ ordenId: 10, estadoPago: "approved", accion: "aprobada" })),
+  firmaWebhookValida: jest.fn(() => true),
 }));
 
 jest.mock("../services/pagos.service", () => ({
@@ -69,5 +76,57 @@ describe("Pagos (pasarela simulada)", () => {
   it("responde 400 ante un resultado desconocido", async () => {
     const res = await request(app).post("/api/pagos/mock/10/otro");
     expect(res.status).toBe(400);
+  });
+});
+
+describe("Pagos (Mercado Pago)", () => {
+  it("expone el diagnóstico sin revelar el token", async () => {
+    const res = await request(app).get("/api/pagos/mercadopago/config");
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      proveedor: "mock",
+      configurado: true,
+      modo: "prueba",
+      webhook: "http://localhost:3000/api/pagos/mercadopago/webhook",
+    });
+    expect(JSON.stringify(res.body)).not.toContain("TEST-token-de-prueba");
+  });
+
+  it("acepta un webhook sin pago y responde 200", async () => {
+    const res = await request(app).post("/api/pagos/mercadopago/webhook");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, ignorado: true });
+    expect(procesarPagoMercadoPago).not.toHaveBeenCalled();
+  });
+
+  it("procesa el webhook de un pago y consulta su estado real", async () => {
+    const res = await request(app).post("/api/pagos/mercadopago/webhook?type=payment&data.id=999");
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ ok: true, ordenId: 10, accion: "aprobada" });
+    expect(procesarPagoMercadoPago).toHaveBeenCalledWith("999");
+  });
+
+  it("rechaza un webhook con firma inválida", async () => {
+    (firmaWebhookValida as jest.Mock).mockReturnValueOnce(false);
+    const res = await request(app).post("/api/pagos/mercadopago/webhook?type=payment&data.id=999");
+    expect(res.status).toBe(401);
+    expect(procesarPagoMercadoPago).not.toHaveBeenCalled();
+  });
+
+  it("exige sesión para confirmar el pago desde el navegador", async () => {
+    const res = await request(app).post("/api/pagos/mercadopago/confirmar").send({ paymentId: "999" });
+    expect(res.status).toBe(401);
+  });
+
+  it("rechaza una confirmación sin paymentId", async () => {
+    const res = await conToken(request(app).post("/api/pagos/mercadopago/confirmar")).send({});
+    expect(res.status).toBe(400);
+  });
+
+  it("confirma el pago de una orden del usuario", async () => {
+    const res = await conToken(request(app).post("/api/pagos/mercadopago/confirmar")).send({ paymentId: "999" });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ ok: true, ordenId: 10, accion: "aprobada" });
+    expect(procesarPagoMercadoPago).toHaveBeenCalledWith("999", 1);
   });
 });
