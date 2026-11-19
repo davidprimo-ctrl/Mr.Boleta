@@ -23,7 +23,7 @@ export const documentoOpenApi = {
   openapi: "3.0.3",
   info: {
     title: "Mr.Boleta API",
-    version: "0.3.0",
+    version: "0.3.4",
     description:
       "API de la tiquetera virtual Mr.Boleta: catálogo de eventos, órdenes con reserva de cupos por 10 minutos, " +
       "pagos (pasarela simulada o Mercado Pago), boletas con código QR, panel de administrador y reporte de ventas.\n\n" +
