@@ -1,6 +1,6 @@
 # Sprint 3 — Mr.Boleta
 
-Versión `v0.3.0`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
+Versión `v0.3.4`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
 
 ## Lo que se entregó
 

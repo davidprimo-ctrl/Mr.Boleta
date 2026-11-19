@@ -1,6 +1,6 @@
 # Mr.Boleta
 
-Tiquetera virtual para eventos musicales. Versión actual: **v0.3.0** (Sprint 3).
+Tiquetera virtual para eventos musicales. Versión actual: **v0.3.4** (Sprint 3).
 
 ## Demo en línea
 
@@ -18,7 +18,7 @@ Tiquetera virtual para eventos musicales. Versión actual: **v0.3.0** (Sprint 3)
 - **Pagos con Mercado Pago:** Checkout Pro en COP, con confirmación al volver y webhook idempotente. Se activa con `PAYMENT_PROVIDER=mercadopago` y `MP_ACCESS_TOKEN`.
 - **Pruebas automáticas:** 61 pruebas con Jest + Supertest.
 
-Detalle completo: [docs/SPRINT_3.md](docs/SPRINT_3.md).
+Detalle completo: [docs/SPRINT_3.md](docs/SPRINT_3.md). Documentación del proyecto en la [wiki](https://github.com/davidprimo-ctrl/Mr.Boleta/wiki), incluida la página de [pagos con Mercado Pago](https://github.com/davidprimo-ctrl/Mr.Boleta/wiki/Pagos-con-Mercado-Pago).
 
 ## Desarrollo
 

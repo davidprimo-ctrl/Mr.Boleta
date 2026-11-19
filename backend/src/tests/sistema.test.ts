@@ -25,7 +25,7 @@ describe("Sistema y documentación", () => {
     const res = await request(app).get("/api/docs.json");
     expect(res.status).toBe(200);
     expect(res.body.openapi).toBe("3.0.3");
-    expect(res.body.info.version).toBe("0.3.0");
+    expect(res.body.info.version).toBe("0.3.4");
     for (const ruta of ["/api/eventos", "/api/ordenes", "/api/pagos/ordenes/{id}", "/api/admin/eventos", "/api/admin/resumen"]) {
       expect(res.body.paths).toHaveProperty(ruta);
     }
