@@ -62,12 +62,32 @@ El backend (`POST /api/admin/boletas/validar`, documentado en Swagger):
 Reglas que aplica el backend: no se pueden publicar eventos sin localidades; no se puede bajar el aforo por
 debajo de lo vendido o reservado; los eventos no se borran, se desactivan para conservar órdenes y boletas.
 
+### Pagos con Mercado Pago (Checkout Pro)
+
+Con `PAYMENT_PROVIDER=mercadopago`, el backend crea una **preferencia** en COP y redirige al comprador al
+checkout de Mercado Pago. Al volver, el frontend envía el `payment_id` a
+`POST /api/pagos/mercadopago/confirmar`; el backend consulta el pago real (no confía en el navegador) y
+actualiza la orden. El webhook `POST /api/pagos/mercadopago/webhook` hace lo mismo si Mercado Pago avisa
+por su cuenta. Ambas rutas son idempotentes: la orden se aprueba una sola vez y las boletas no se duplican.
+
+Variables (en `backend/.env` local y en Render):
+
+```env
+PAYMENT_PROVIDER=mercadopago
+MP_ACCESS_TOKEN=TEST-...
+MP_WEBHOOK_SECRET=        # opcional; si se configura, se valida la firma x-signature
+```
+
+- Con token `TEST-` se usa `sandbox_init_point` (dinero de prueba). Con `APP_USR-` se usa `init_point`.
+- La URL del webhook se envía en cada preferencia: `${API_URL}/api/pagos/mercadopago/webhook`.
+- `PAYMENT_PROVIDER=mock` sigue disponible como respaldo para la demo.
+
 ### Pruebas
 
 ```bash
 cd backend
 npm install
-npm test              # 46 pruebas, 6 suites
+npm test              # 60 pruebas, 7 suites
 npm run test:coverage # reporte en backend/coverage
 ```
 
@@ -75,13 +95,15 @@ No requieren base de datos ni Auth0: `src/tests/setupEnv.ts` define variables de
 `moduleNameMapper` sustituye Auth0 y Prisma por dobles controlados.
 
 Cobertura principal: health y Swagger, catálogo, 401/403 de administración, creación/lectura de órdenes,
-pasarela simulada (aprobar, rechazar, vencida) y reglas de negocio (reserva atómica, expiración,
-generación de boletas, envío de correo, cálculo del reporte y check-in sin duplicados).
+pasarela simulada (aprobar, rechazar, vencida), Mercado Pago (preferencia, webhook, confirmación y firma)
+y reglas de negocio (reserva atómica, expiración, generación de boletas, envío de correo, cálculo del
+reporte y check-in sin duplicados).
 
 ## Decisiones y límites
 
-- **Wompi** sigue en modo simulado (`PAYMENT_PROVIDER=mock`). El adaptador real existe en
-  `backend/src/services/pagos/wompi.ts`, pero Wompi exige RUT para entregar llaves de prueba (riesgo documentado en el Avance 2).
+- **Mercado Pago** es la pasarela activa (`PAYMENT_PROVIDER=mercadopago`). Con credenciales de prueba (`TEST-`)
+  no se mueve dinero real; para cobrar de verdad hay que activar credenciales productivas y verificar la cuenta.
+- **Modo simulado** sigue disponible (`PAYMENT_PROVIDER=mock`) como respaldo para la demo si Mercado Pago falla.
 - **Correo** usa Ethereal por defecto (vista previa, no llega a bandejas reales). Para correo real hay que
   configurar `SMTP_*` en `backend/.env` y en Render; nunca subir credenciales a GitHub.
 - **Fechas**: `20:00 -05:00` se guarda en UTC como `01:00Z` del día siguiente. No es un error.

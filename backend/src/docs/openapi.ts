@@ -26,7 +26,7 @@ export const documentoOpenApi = {
     version: "0.3.0",
     description:
       "API de la tiquetera virtual Mr.Boleta: catálogo de eventos, órdenes con reserva de cupos por 10 minutos, " +
-      "pagos (pasarela simulada o Wompi), boletas con código QR, panel de administrador y reporte de ventas.\n\n" +
+      "pagos (pasarela simulada o Mercado Pago), boletas con código QR, panel de administrador y reporte de ventas.\n\n" +
       "**Para probar las rutas con candado 🔒:** inicia sesión en la página, copia tu token de Auth0 " +
       "(F12 → Network → petición `me` → header `Authorization`, sin la palabra `Bearer`) y pégalo en el botón **Authorize**.",
   },
@@ -36,7 +36,7 @@ export const documentoOpenApi = {
     { name: "Catálogo", description: "Eventos publicados (público, sin sesión)" },
     { name: "Usuarios", description: "Usuario que inició sesión con Google (Auth0)" },
     { name: "Órdenes", description: "Compra de boletas con reserva de cupos por 10 minutos" },
-    { name: "Pagos", description: "Inicio del pago en la pasarela (mock o Wompi)" },
+    { name: "Pagos", description: "Inicio del pago en la pasarela (mock o Mercado Pago)" },
     { name: "Administración", description: "Gestión de eventos, localidades y reportes (solo rol ADMIN)" },
   ],
   paths: {
@@ -160,8 +160,8 @@ export const documentoOpenApi = {
         tags: ["Pagos"],
         summary: "Inicia el pago de mi orden y devuelve la URL de la pasarela",
         description:
-          "La pasarela depende de PAYMENT_PROVIDER: `mock` (simulada) o `wompi`. Al aprobarse el pago se generan " +
-          "las boletas con QR y se envían por correo.",
+          "La pasarela depende de PAYMENT_PROVIDER: `mock` (simulada) o `mercadopago` (Checkout Pro). Al aprobarse " +
+          "el pago se generan las boletas con QR y se envían por correo.",
         security: conSesion,
         parameters: [idEnRuta("Id de la orden")],
         responses: {
@@ -172,6 +172,61 @@ export const documentoOpenApi = {
           401: error("Sin token o token inválido"),
           404: error("Orden no encontrada"),
           409: error("La reserva ya no está vigente"),
+        },
+      },
+    },
+    "/api/pagos/mercadopago/webhook": {
+      post: {
+        tags: ["Pagos"],
+        summary: "Webhook de Mercado Pago (sin sesión)",
+        description:
+          "Mercado Pago avisa aquí cuando cambia un pago. El backend NO confía en el body: consulta el estado real " +
+          "a la API de Mercado Pago y, si está aprobado, marca la orden y genera las boletas. Responde 200 aunque " +
+          "el aviso no traiga un pago.",
+        parameters: [
+          { name: "type", in: "query", required: false, schema: { type: "string", example: "payment" } },
+          { name: "data.id", in: "query", required: false, schema: { type: "string", example: "123456789" } },
+        ],
+        responses: {
+          200: { description: "Aviso recibido (procesado o ignorado)" },
+          401: error("Firma del webhook inválida"),
+          502: error("No se pudo consultar el pago a Mercado Pago"),
+        },
+      },
+    },
+    "/api/pagos/mercadopago/confirmar": {
+      post: {
+        tags: ["Pagos"],
+        summary: "Confirma el pago al volver del checkout",
+        description:
+          "El frontend envía el `payment_id` que Mercado Pago agrega a la URL de regreso. Solo permite confirmar " +
+          "una orden del usuario autenticado y es idempotente con el webhook.",
+        security: conSesion,
+        requestBody: {
+          required: true,
+          content: json({
+            type: "object",
+            required: ["paymentId"],
+            properties: { paymentId: { type: "string", example: "123456789" } },
+          }),
+        },
+        responses: {
+          200: {
+            description: "Pago consultado y orden actualizada",
+            content: json({
+              type: "object",
+              properties: {
+                ok: { type: "boolean" },
+                ordenId: { type: "integer", nullable: true },
+                estadoPago: { type: "string" },
+                accion: { type: "string", enum: ["aprobada", "rechazada", "pendiente", "ignorada"] },
+              },
+            }),
+          },
+          400: error("Falta paymentId"),
+          401: error("Sin token o token inválido"),
+          404: error("La orden no pertenece al usuario"),
+          502: error("No se pudo consultar el pago a Mercado Pago"),
         },
       },
     },

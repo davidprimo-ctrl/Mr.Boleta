@@ -1,9 +1,10 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { env } from "../config/env";
 import { prisma } from "../lib/prisma";
 import { HttpError } from "../lib/errores";
 import { requiereAuth } from "../middlewares/auth";
 import { pasarela } from "../services/pagos";
+import { firmaWebhookValida, procesarPagoMercadoPago } from "../services/pagos/mercadopago";
 import { aprobarOrden, rechazarOrden } from "../services/pagos.service";
 
 export const pagosRouter = Router();
@@ -51,6 +52,54 @@ if (env.PAYMENT_PROVIDER === "mock") {
     res.redirect(303, `${env.FRONTEND_URL}/ordenes/${id}`);
   });
 }
+
+// ─── Mercado Pago (Checkout Pro) ───
+
+// GET /api/pagos/mercadopago/config → diagnóstico sin exponer el token
+pagosRouter.get("/mercadopago/config", (_req, res) => {
+  const token = env.mercadopago.accessToken;
+  res.json({
+    proveedor: env.PAYMENT_PROVIDER,
+    configurado: Boolean(token),
+    modo: token.startsWith("TEST-") ? "prueba" : token ? "produccion" : "sin_token",
+    webhook: `${env.API_URL.replace(/\/+$/, "")}/api/pagos/mercadopago/webhook`,
+  });
+});
+
+// POST/GET /api/pagos/mercadopago/webhook → aviso de pago de Mercado Pago (sin sesión)
+async function webhookMercadoPago(req: Request, res: Response) {
+  const tipo = String(req.query.type ?? req.query.topic ?? req.body?.type ?? "");
+  const dataId = String(req.query["data.id"] ?? req.query.id ?? req.body?.data?.id ?? "");
+
+  // Sin pago que procesar (o aviso de otro tipo, como merchant_order): se confirma la recepción.
+  if (!dataId || (tipo && tipo !== "payment")) {
+    res.json({ ok: true, ignorado: true });
+    return;
+  }
+
+  const firmaValida = firmaWebhookValida({
+    dataId,
+    requestId: req.header("x-request-id"),
+    signature: req.header("x-signature"),
+    secreto: env.mercadopago.webhookSecret,
+  });
+  if (!firmaValida) throw new HttpError(401, "Firma del webhook inválida");
+
+  // Se consulta el pago a la API: el webhook solo avisa, no se le cree al body.
+  res.json({ ok: true, ...(await procesarPagoMercadoPago(dataId)) });
+}
+
+pagosRouter.post("/mercadopago/webhook", webhookMercadoPago);
+pagosRouter.get("/mercadopago/webhook", webhookMercadoPago);
+
+// POST /api/pagos/mercadopago/confirmar → el navegador confirma al volver del checkout
+pagosRouter.post("/mercadopago/confirmar", requiereAuth, async (req: Request, res: Response) => {
+  const paymentId = typeof req.body?.paymentId === "string" ? req.body.paymentId.trim() : "";
+  if (!paymentId) throw new HttpError(400, 'Se espera { "paymentId": "..." }');
+
+  const resultado = await procesarPagoMercadoPago(paymentId, req.usuario!.id);
+  res.json({ ok: true, ...resultado });
+});
 
 /** Evita que un texto de la base de datos se interprete como HTML. */
 function escapar(texto: string) {
