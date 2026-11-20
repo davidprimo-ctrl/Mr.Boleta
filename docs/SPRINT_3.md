@@ -1,6 +1,6 @@
 # Sprint 3 — Mr.Boleta
 
-Versión `v0.3.4`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
+Versión `v0.3.5`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
 
 ## Lo que se entregó
 
@@ -61,6 +61,16 @@ El backend (`POST /api/admin/boletas/validar`, documentado en Swagger):
 
 Reglas que aplica el backend: no se pueden publicar eventos sin localidades; no se puede bajar el aforo por
 debajo de lo vendido o reservado; los eventos no se borran, se desactivan para conservar órdenes y boletas.
+
+### Mapa del recinto
+
+La página del evento muestra un **recinto tipo estadio** (SVG): escenario, piso central y un anillo de
+secciones con puntos de asientos. Cada localidad recibe un color y varias secciones contiguas, ordenadas de
+la más cara (cerca del escenario) a la más barata. El panel derecho lista las localidades con color, precio y
+cupos, y permite elegir la misma zona desde el mapa o desde la lista. Incluye zoom con desplazamiento.
+
+> Es un **mapa referencial**: los asientos no se eligen individualmente; la compra es por localidad y
+> cantidad, como define el modelo de datos.
 
 ### Pagos con Mercado Pago (Checkout Pro)
 
