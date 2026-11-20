@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useAuth0 } from "@auth0/auth0-react";
-import MapaLocalidades, { colorZona } from "../components/MapaLocalidades";
+import MapaLocalidades, { colorDeLocalidad } from "../components/MapaLocalidades";
 import { crearOrden, obtenerEvento } from "../services/api";
 import type { Evento } from "../types";
 import { formatoCOP, formatoFecha } from "../utils/formato";
@@ -100,7 +100,12 @@ export default function DetalleEvento() {
 
       {/* Mapa + panel */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] mt-10 items-start">
-        <MapaLocalidades zonas={zonas} seleccionada={seleccionada} onSeleccionar={seleccionar} />
+        <MapaLocalidades
+          zonas={zonas}
+          seleccionada={seleccionada}
+          onSeleccionar={seleccionar}
+          mapa={evento.mapa}
+        />
 
         <aside className="flex flex-col gap-4">
           <div className="bg-navy-800 border border-navy-700 rounded-xl p-4">
@@ -130,7 +135,7 @@ export default function DetalleEvento() {
                     >
                       <span
                         aria-hidden
-                        style={activa ? { backgroundColor: colorZona(i), borderColor: colorZona(i) } : undefined}
+                        style={activa ? { backgroundColor: colorDeLocalidad(loc, i, evento.mapa), borderColor: colorDeLocalidad(loc, i, evento.mapa) } : undefined}
                         className={`w-5 h-5 shrink-0 rounded border flex items-center justify-center text-xs font-bold text-navy-950
                           ${activa ? "border-transparent" : "border-gray-500"}`}
                       >
@@ -138,7 +143,7 @@ export default function DetalleEvento() {
                       </span>
                       <span
                         aria-hidden
-                        style={{ backgroundColor: agotada ? "#6b7280" : colorZona(i) }}
+                        style={{ backgroundColor: agotada ? "#6b7280" : colorDeLocalidad(loc, i, evento.mapa) }}
                         className="w-2.5 h-2.5 shrink-0 rounded-full"
                       />
                       <span className="flex-1 min-w-0">
@@ -163,7 +168,7 @@ export default function DetalleEvento() {
               <div className="flex items-center gap-2">
                 <span
                   aria-hidden
-                  style={{ backgroundColor: colorZona(zonas.findIndex((l) => l.id === localidad.id)) }}
+                  style={{ backgroundColor: colorDeLocalidad(localidad, zonas.findIndex((l) => l.id === localidad.id), evento.mapa) }}
                   className="w-3 h-3 rounded-full"
                 />
                 <p className="font-bold">{localidad.nombre}</p>

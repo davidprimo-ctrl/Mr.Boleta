@@ -11,8 +11,10 @@ import {
   obtenerMiPerfil,
   obtenerResumenAdmin,
 } from "../services/api";
-import type { DatosEvento, DatosLocalidad, Evento, ResumenAdmin, Usuario } from "../types";
+import type { DatosEvento, DatosLocalidad, Evento, MapaId, ResumenAdmin, Usuario } from "../types";
 import { formatoCOP, formatoFecha } from "../utils/formato";
+import MapaLocalidades from "../components/MapaLocalidades";
+import { localidadesSugeridas, localidadesDeVistaPrevia, MAPAS, type MapaPreset } from "../components/mapas/presets";
 
 // El lector QR (ZXing) es pesado: se descarga solo al abrir la pestaña.
 const ValidadorQR = lazy(() => import("./ValidadorQR"));
@@ -33,6 +35,7 @@ const EVENTO_VACIO: DatosEvento = {
   ciudad: "",
   fecha: "",
   imagenUrl: "",
+  mapa: "generico",
 };
 const LOCALIDAD_VACIA: DatosLocalidad = { nombre: "", precio: 0, aforo: 0 };
 
@@ -489,120 +492,179 @@ export default function Admin() {
 
       {/* ── Crear evento ── */}
       {pestaña === "crear" && (
-        <form
-          className="max-w-3xl mt-8 bg-navy-800 border border-navy-700 rounded-xl p-6 space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void ejecutar(
-              (token) =>
-                crearEventoAdmin(token, {
-                  ...nuevo,
-                  fecha: aISO(nuevo.fecha),
-                  imagenUrl: nuevo.imagenUrl || null,
-                  localidades: nuevasLocalidades,
-                }),
-              "Evento creado en BORRADOR. Publícalo desde la pestaña Eventos.",
-            ).then(() => {
-              setNuevo({ ...EVENTO_VACIO });
-              setNuevasLocalidades([{ ...LOCALIDAD_VACIA }]);
-              setPestaña("eventos");
-            });
-          }}
-        >
-          <h2 className="text-xl font-bold">Nuevo evento</h2>
-          <p className="text-gray-400 text-sm">Se crea en BORRADOR; no aparece en el catálogo hasta publicarlo.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(
-              ["nombre", "artista", "lugar", "ciudad", "descripcion", "imagenUrl"] as const
-            ).map((campo) => (
-              <label key={campo} className="text-sm">
-                {campo === "imagenUrl" ? "URL de imagen" : campo[0].toUpperCase() + campo.slice(1)}
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start">
+          {/* ── Formulario ── */}
+          <form
+            className="bg-navy-800 border border-navy-700 rounded-xl p-6 space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void ejecutar(
+                (token) =>
+                  crearEventoAdmin(token, {
+                    ...nuevo,
+                    fecha: aISO(nuevo.fecha),
+                    imagenUrl: nuevo.imagenUrl || null,
+                    localidades: nuevasLocalidades,
+                  }),
+                "Evento creado en BORRADOR. Publícalo desde la pestaña Eventos.",
+              ).then(() => {
+                setNuevo({ ...EVENTO_VACIO });
+                setNuevasLocalidades([{ ...LOCALIDAD_VACIA }]);
+                setPestaña("eventos");
+              });
+            }}
+          >
+            <h2 className="text-xl font-bold">Nuevo evento</h2>
+            <p className="text-gray-400 text-sm">Se crea en BORRADOR; no aparece en el catálogo hasta publicarlo.</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(
+                ["nombre", "artista", "lugar", "ciudad", "descripcion", "imagenUrl"] as const
+              ).map((campo) => (
+                <label key={campo} className="text-sm">
+                  {campo === "imagenUrl" ? "URL de imagen" : campo[0].toUpperCase() + campo.slice(1)}
+                  <input
+                    value={nuevo[campo] ?? ""}
+                    onChange={(e) => setNuevo({ ...nuevo, [campo]: e.target.value })}
+                    className="mt-1 w-full bg-navy-900 border border-navy-700 rounded-lg p-2"
+                    required={campo !== "descripcion" && campo !== "imagenUrl"}
+                  />
+                </label>
+              ))}
+              <label className="text-sm">
+                Fecha y hora
                 <input
-                  value={nuevo[campo] ?? ""}
-                  onChange={(e) => setNuevo({ ...nuevo, [campo]: e.target.value })}
+                  type="datetime-local"
+                  value={nuevo.fecha}
+                  onChange={(e) => setNuevo({ ...nuevo, fecha: e.target.value })}
                   className="mt-1 w-full bg-navy-900 border border-navy-700 rounded-lg p-2"
-                  required={campo !== "descripcion" && campo !== "imagenUrl"}
+                  required
                 />
               </label>
-            ))}
-            <label className="text-sm">
-              Fecha y hora
-              <input
-                type="datetime-local"
-                value={nuevo.fecha}
-                onChange={(e) => setNuevo({ ...nuevo, fecha: e.target.value })}
-                className="mt-1 w-full bg-navy-900 border border-navy-700 rounded-lg p-2"
-                required
-              />
-            </label>
-          </div>
 
-          <div className="border-t border-navy-700 pt-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold">Localidades</h3>
-              <button
-                type="button"
-                onClick={() => setNuevasLocalidades([...nuevasLocalidades, { ...LOCALIDAD_VACIA }])}
-                className="text-brand-400 hover:underline text-sm"
-              >
-                + Agregar localidad
-              </button>
-            </div>
-            <div className="space-y-2 mt-3">
-              {nuevasLocalidades.map((loc, i) => (
-                <div key={i} className="flex flex-wrap gap-2">
-                  <input
-                    aria-label={`Nombre de localidad ${i + 1}`}
-                    placeholder="Nombre (ej. VIP)"
-                    value={loc.nombre}
-                    onChange={(e) =>
-                      setNuevasLocalidades(nuevasLocalidades.map((l, j) => (j === i ? { ...l, nombre: e.target.value } : l)))
-                    }
-                    className="bg-navy-900 border border-navy-700 rounded p-2 flex-1 min-w-40"
-                    required
-                  />
-                  <input
-                    aria-label={`Precio de localidad ${i + 1}`}
-                    type="number"
-                    min={1}
-                    placeholder="Precio"
-                    value={loc.precio || ""}
-                    onChange={(e) =>
-                      setNuevasLocalidades(nuevasLocalidades.map((l, j) => (j === i ? { ...l, precio: Number(e.target.value) } : l)))
-                    }
-                    className="w-32 bg-navy-900 border border-navy-700 rounded p-2"
-                    required
-                  />
-                  <input
-                    aria-label={`Aforo de localidad ${i + 1}`}
-                    type="number"
-                    min={1}
-                    placeholder="Aforo"
-                    value={loc.aforo || ""}
-                    onChange={(e) =>
-                      setNuevasLocalidades(nuevasLocalidades.map((l, j) => (j === i ? { ...l, aforo: Number(e.target.value) } : l)))
-                    }
-                    className="w-24 bg-navy-900 border border-navy-700 rounded p-2"
-                    required
-                  />
-                  {nuevasLocalidades.length > 1 && (
+              {/* ── Selector de mapa ── */}
+              <label className="text-sm sm:col-span-2">
+                Plano del recinto
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  {(Object.values(MAPAS) as MapaPreset[]).map((preset) => (
                     <button
+                      key={preset.id}
                       type="button"
-                      onClick={() => setNuevasLocalidades(nuevasLocalidades.filter((_, j) => j !== i))}
-                      className="text-red-400 text-sm px-2"
+                      onClick={() => {
+                        const mapaId = preset.id as MapaId;
+                        setNuevo({ ...nuevo, mapa: mapaId });
+                        // Cargar localidades sugeridas del preset (solo si no es genérico)
+                        if (mapaId !== "generico") {
+                          setNuevasLocalidades(localidadesSugeridas(mapaId));
+                        } else {
+                          setNuevasLocalidades([{ ...LOCALIDAD_VACIA }]);
+                        }
+                      }}
+                      className={`text-left p-3 rounded-xl border-2 transition-colors ${
+                        nuevo.mapa === preset.id
+                          ? "border-brand-500 bg-brand-500/10"
+                          : "border-navy-700 bg-navy-900 hover:border-navy-600"
+                      }`}
                     >
-                      Quitar
+                      <p className="font-semibold text-sm">{preset.nombre}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{preset.descripcion}</p>
                     </button>
-                  )}
+                  ))}
                 </div>
-              ))}
+              </label>
             </div>
-          </div>
 
-          <button type="submit" disabled={guardando} className="bg-brand-500 hover:bg-brand-400 rounded-lg px-6 py-3 font-semibold disabled:opacity-50">
-            {guardando ? "Creando..." : "Crear evento"}
-          </button>
-        </form>
+            <div className="border-t border-navy-700 pt-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold">
+                  Localidades
+                  {nuevo.mapa !== "generico" && (
+                    <span className="ml-2 text-xs text-brand-400 font-normal">
+                      · cargadas desde el plano ({nuevo.mapa})
+                    </span>
+                  )}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setNuevasLocalidades([...nuevasLocalidades, { ...LOCALIDAD_VACIA }])}
+                  className="text-brand-400 hover:underline text-sm"
+                >
+                  + Agregar localidad
+                </button>
+              </div>
+              <div className="space-y-2 mt-3">
+                {nuevasLocalidades.map((loc, i) => (
+                  <div key={i} className="flex flex-wrap gap-2 items-center">
+                    <input
+                      aria-label={`Nombre de localidad ${i + 1}`}
+                      placeholder="Nombre (ej. VIP)"
+                      value={loc.nombre}
+                      onChange={(e) =>
+                        setNuevasLocalidades(nuevasLocalidades.map((l, j) => (j === i ? { ...l, nombre: e.target.value } : l)))
+                      }
+                      className="bg-navy-900 border border-navy-700 rounded p-2 flex-1 min-w-40"
+                      required
+                    />
+                    <input
+                      aria-label={`Precio de localidad ${i + 1}`}
+                      type="number"
+                      min={1}
+                      placeholder="Precio"
+                      value={loc.precio || ""}
+                      onChange={(e) =>
+                        setNuevasLocalidades(nuevasLocalidades.map((l, j) => (j === i ? { ...l, precio: Number(e.target.value) } : l)))
+                      }
+                      className="w-32 bg-navy-900 border border-navy-700 rounded p-2"
+                      required
+                    />
+                    <input
+                      aria-label={`Aforo de localidad ${i + 1}`}
+                      type="number"
+                      min={1}
+                      placeholder="Aforo"
+                      value={loc.aforo || ""}
+                      onChange={(e) =>
+                        setNuevasLocalidades(nuevasLocalidades.map((l, j) => (j === i ? { ...l, aforo: Number(e.target.value) } : l)))
+                      }
+                      className="w-24 bg-navy-900 border border-navy-700 rounded p-2"
+                      required
+                    />
+                    {loc.zona && (
+                      <span className="text-xs text-gray-500 bg-navy-900 border border-navy-700 rounded px-2 py-2">
+                        zona: {loc.zona}
+                      </span>
+                    )}
+                    {nuevasLocalidades.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setNuevasLocalidades(nuevasLocalidades.filter((_, j) => j !== i))}
+                        className="text-red-400 text-sm px-2"
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button type="submit" disabled={guardando} className="bg-brand-500 hover:bg-brand-400 rounded-lg px-6 py-3 font-semibold disabled:opacity-50">
+              {guardando ? "Creando..." : "Crear evento"}
+            </button>
+          </form>
+
+          {/* ── Vista previa del mapa ── */}
+          <div className="sticky top-6">
+            <p className="text-sm text-gray-400 mb-3 font-semibold uppercase tracking-wide">
+              Vista previa del plano
+            </p>
+            <MapaLocalidades
+              zonas={localidadesDeVistaPrevia(nuevo.mapa ?? "generico")}
+              seleccionada={null}
+              onSeleccionar={() => {}}
+              mapa={nuevo.mapa ?? "generico"}
+            />
+          </div>
+        </div>
       )}
     </main>
   );

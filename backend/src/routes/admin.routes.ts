@@ -40,6 +40,18 @@ function fecha(body: Cuerpo, campo: string) {
   return f;
 }
 
+/** Mapas preestablecidos que entiende el frontend. */
+const MAPAS = new Set(["generico", "movistar-arena"]);
+
+function leerMapa(body: Cuerpo) {
+  const valor = body.mapa;
+  if (valor === undefined || valor === null || valor === "") return "generico";
+  if (typeof valor !== "string" || !MAPAS.has(valor)) {
+    throw new HttpError(400, `"mapa" debe ser uno de: ${[...MAPAS].join(", ")}`);
+  }
+  return valor;
+}
+
 /** Con parcial=true (al editar) solo valida los campos que vengan en el body. */
 function leerEvento(body: Cuerpo, parcial: boolean) {
   const datos: Partial<admin.DatosEvento> = {};
@@ -47,6 +59,7 @@ function leerEvento(body: Cuerpo, parcial: boolean) {
     if (!parcial || campo in body) datos[campo] = texto(body, campo);
   }
   if (!parcial || "fecha" in body) datos.fecha = fecha(body, "fecha");
+  if (!parcial || "mapa" in body) datos.mapa = leerMapa(body);
   if ("imagenUrl" in body) {
     datos.imagenUrl = body.imagenUrl === null || body.imagenUrl === "" ? null : texto(body, "imagenUrl");
   }
@@ -58,6 +71,16 @@ function leerLocalidad(body: Cuerpo, parcial: boolean) {
   if (!parcial || "nombre" in body) datos.nombre = texto(body, "nombre");
   if (!parcial || "precio" in body) datos.precio = numeroPositivo(body, "precio");
   if (!parcial || "aforo" in body) datos.aforo = numeroPositivo(body, "aforo", true);
+  if ("zona" in body) {
+    const valor = body.zona;
+    if (valor === null || valor === "") {
+      datos.zona = null;
+    } else if (typeof valor === "string" && valor.trim().length <= 30) {
+      datos.zona = valor.trim();
+    } else {
+      throw new HttpError(400, '"zona" debe ser un texto de hasta 30 caracteres');
+    }
+  }
   return datos;
 }
 

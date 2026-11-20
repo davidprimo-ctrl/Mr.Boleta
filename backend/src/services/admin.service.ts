@@ -10,12 +10,14 @@ export interface DatosEvento {
   ciudad: string;
   fecha: Date;
   imagenUrl?: string | null;
+  mapa?: string;
 }
 
 export interface DatosLocalidad {
   nombre: string;
   precio: number;
   aforo: number;
+  zona?: string | null;
 }
 
 const conLocalidades = { localidades: { orderBy: { precio: "desc" } } } as const;

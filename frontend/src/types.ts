@@ -1,11 +1,14 @@
 // Tipos que devuelve la API (deben coincidir con el modelo de Prisma)
 
+export type MapaId = "generico" | "movistar-arena";
+
 export interface Localidad {
   id: number;
   nombre: string;
   precio: string; // la API envía los Decimal como texto
   aforo: number;
   cuposDisponibles: number;
+  zona: string | null; // código de la sección en el mapa preestablecido
   eventoId: number;
 }
 
@@ -19,6 +22,7 @@ export interface Evento {
   fecha: string; // fecha en formato ISO
   imagenUrl: string | null;
   estado: "BORRADOR" | "PUBLICADO" | "INACTIVO";
+  mapa: MapaId;
   localidades: Localidad[];
 }
 
@@ -38,12 +42,14 @@ export interface DatosEvento {
   ciudad: string;
   fecha: string;
   imagenUrl?: string | null;
+  mapa?: MapaId;
 }
 
 export interface DatosLocalidad {
   nombre: string;
   precio: number;
   aforo: number;
+  zona?: string | null;
 }
 
 /** Resumen de un evento en el reporte HU09. */

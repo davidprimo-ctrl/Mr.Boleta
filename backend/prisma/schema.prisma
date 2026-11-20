@@ -60,6 +60,7 @@ model Evento {
   fecha       DateTime
   imagenUrl   String?
   estado      EstadoEvento @default(BORRADOR)
+  mapa        String       @default("generico") // plano del recinto (mapa preestablecido)
   creadoEn    DateTime     @default(now())
 
   localidades Localidad[]
@@ -72,6 +73,7 @@ model Localidad {
   precio           Decimal @db.Decimal(12, 2) // pesos colombianos
   aforo            Int // cupos totales
   cuposDisponibles Int // baja al reservar, sube si expira
+  zona             String? // código de la zona en el mapa preestablecido (ej. "P101103")
 
   eventoId Int
   evento   Evento @relation(fields: [eventoId], references: [id])
