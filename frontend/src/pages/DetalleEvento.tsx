@@ -99,45 +99,86 @@ export default function DetalleEvento() {
       </div>
 
       {/* Mapa + panel */}
-      <div className="grid gap-6 md:grid-cols-[3fr_2fr] mt-10">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] mt-10 items-start">
         <MapaLocalidades zonas={zonas} seleccionada={seleccionada} onSeleccionar={seleccionar} />
 
-        <aside className="flex flex-col gap-3">
-          <h2 className="text-xl font-bold">Selecciona tu localidad</h2>
+        <aside className="flex flex-col gap-4">
+          <div className="bg-navy-800 border border-navy-700 rounded-xl p-4">
+            <h2 className="text-lg font-bold">Selecciona tu localidad</h2>
+            <p className="text-sm text-gray-400 mt-1">
+              Haz clic en una zona del mapa o elige una de la lista.
+            </p>
+          </div>
 
-          {zonas.map((loc, i) => {
-            const agotada = loc.cuposDisponibles === 0;
-            return (
-              <button
-                key={loc.id}
-                type="button"
-                disabled={agotada}
-                onClick={() => seleccionar(loc.id)}
-                style={{ borderLeftColor: colorZona(i) }}
-                className={`text-left border border-navy-700 border-l-4 rounded-lg p-4 transition disabled:opacity-40
-                  ${seleccionada === loc.id ? "bg-navy-700" : "bg-navy-800 hover:bg-navy-700"}`}
-              >
-                <p className="font-semibold">{loc.nombre}</p>
-                <p className="text-brand-400">{formatoCOP(loc.precio)}</p>
-                <p className="text-xs text-gray-400">
-                  {agotada ? "Agotada" : `${loc.cuposDisponibles} disponibles`}
-                </p>
-              </button>
-            );
-          })}
+          <div className="bg-navy-800 border border-navy-700 rounded-xl p-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-300">
+              Localidades y precios
+            </h3>
+            <ul className="mt-2 divide-y divide-navy-700">
+              {zonas.map((loc, i) => {
+                const agotada = loc.cuposDisponibles === 0;
+                const activa = seleccionada === loc.id;
+                return (
+                  <li key={loc.id}>
+                    <button
+                      type="button"
+                      disabled={agotada}
+                      onClick={() => seleccionar(loc.id)}
+                      aria-pressed={activa}
+                      className={`w-full flex items-center gap-3 py-3 text-left transition
+                        ${agotada ? "opacity-40 cursor-not-allowed" : "hover:opacity-80"}`}
+                    >
+                      <span
+                        aria-hidden
+                        style={activa ? { backgroundColor: colorZona(i), borderColor: colorZona(i) } : undefined}
+                        className={`w-5 h-5 shrink-0 rounded border flex items-center justify-center text-xs font-bold text-navy-950
+                          ${activa ? "border-transparent" : "border-gray-500"}`}
+                      >
+                        {activa && "✓"}
+                      </span>
+                      <span
+                        aria-hidden
+                        style={{ backgroundColor: agotada ? "#6b7280" : colorZona(i) }}
+                        className="w-2.5 h-2.5 shrink-0 rounded-full"
+                      />
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-semibold truncate">{loc.nombre}</span>
+                        <span className="block text-xs text-gray-400">
+                          {agotada ? "Agotada" : `${loc.cuposDisponibles} disponibles`}
+                        </span>
+                      </span>
+                      <span className="text-sm font-semibold whitespace-nowrap">
+                        {formatoCOP(loc.precio)}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
 
           {/* Resumen de la compra */}
-          {localidad && (
-            <div className="bg-navy-800 border border-brand-500 rounded-lg p-4 mt-2">
-              <p className="text-sm text-gray-400">Localidad elegida</p>
-              <p className="font-bold text-lg">{localidad.nombre}</p>
+          {localidad ? (
+            <div className="bg-navy-800 border border-brand-500 rounded-xl p-4">
+              <div className="flex items-center gap-2">
+                <span
+                  aria-hidden
+                  style={{ backgroundColor: colorZona(zonas.findIndex((l) => l.id === localidad.id)) }}
+                  className="w-3 h-3 rounded-full"
+                />
+                <p className="font-bold">{localidad.nombre}</p>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                {localidad.cuposDisponibles} cupos disponibles · máximo {maximo} por compra
+              </p>
 
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex items-end justify-between gap-4 mt-4">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setCantidad((c) => Math.max(c - 1, 1))}
-                    className="w-9 h-9 rounded-lg bg-navy-700"
+                    aria-label="Quitar una boleta"
+                    className="w-9 h-9 rounded-lg bg-navy-700 hover:bg-navy-600 font-bold"
                   >
                     −
                   </button>
@@ -145,12 +186,16 @@ export default function DetalleEvento() {
                   <button
                     type="button"
                     onClick={() => setCantidad((c) => Math.min(c + 1, maximo))}
-                    className="w-9 h-9 rounded-lg bg-brand-500 hover:bg-brand-400"
+                    aria-label="Agregar una boleta"
+                    className="w-9 h-9 rounded-lg bg-brand-500 hover:bg-brand-400 font-bold"
                   >
                     +
                   </button>
                 </div>
-                <p className="text-2xl font-bold">{formatoCOP(total)}</p>
+                <div className="text-right">
+                  <p className="text-[11px] uppercase tracking-wider text-gray-400">Subtotal</p>
+                  <p className="text-2xl font-bold">{formatoCOP(total)}</p>
+                </div>
               </div>
 
               <button
@@ -166,6 +211,10 @@ export default function DetalleEvento() {
                 Tus boletas quedan reservadas 10 minutos mientras completas el pago.
               </p>
             </div>
+          ) : (
+            <p className="text-sm text-gray-400 px-1">
+              Elige una localidad en el mapa o en la lista para ver el resumen.
+            </p>
           )}
         </aside>
       </div>
