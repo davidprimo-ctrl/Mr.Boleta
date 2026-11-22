@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mr.Boleta — Presentación Final de Proyecto</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Mermaid.js para renderizar el diagrama de arquitectura -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #070c18;
+      color: #f1f5f9;
+      user-select: none;
+    }
+    .slide {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .slide.active {
+      display: flex;
+      opacity: 1;
+    }
+    @media print {
+      body { background-color: #070c18 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      .slide { display: flex !important; opacity: 1 !important; page-break-after: always; height: 100vh !important; }
+    }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col justify-between">
+
+  <!-- Barra de progreso superior -->
+  <div class="w-full bg-slate-800/60 h-1.5 no-print fixed top-0 left-0 z-50">
+    <div id="progress-bar" class="bg-gradient-to-r from-cyan-400 to-indigo-500 h-full w-0 transition-all duration-300"></div>
+  </div>
+
+  <!-- Header sutil con branding -->
+  <header class="w-full px-8 py-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40 backdrop-blur-md no-print z-40">
+    <div class="flex items-center gap-3">
+      <span class="w-3 h-3 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50 animate-pulse"></span>
+      <span class="font-bold text-lg tracking-wide text-white">Mr.Boleta <span class="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">v0.3.7</span></span>
+    </div>
+    <div class="text-xs text-slate-400 flex items-center gap-4">
+      <span>Ingeniería de Software · 6to Semestre</span>
+      <span class="bg-slate-800 px-2 py-1 rounded text-slate-300 font-mono" id="slide-counter">1 / 8</span>
+    </div>
+  </header>
+
+  <!-- Contenedor principal de diapositivas -->
+  <main class="flex-1 w-full max-w-6xl mx-auto p-6 md:p-10 flex items-center justify-center relative">
+
+    <!-- ── SLIDE 1: PORTADA ── -->
+    <section class="slide active flex-col items-center justify-center text-center w-full" data-title="Portada">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-6">
+        Sustentación de Proyecto Final
+      </div>
+      <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+        Mr.Boleta
+      </h1>
+      <p class="text-lg md:text-2xl text-cyan-400 font-semibold mt-3 max-w-2xl">
+        Tiquetera virtual para eventos musicales con control de concurrencia y mapas de recintos interactivos
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12 w-full max-w-3xl">
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 text-left">
+          <p class="text-xs font-mono text-cyan-400">2220241003</p>
+          <p class="font-bold text-slate-200 mt-1">Santiago Primo</p>
+          <p class="text-xs text-slate-400 mt-0.5">Back-end Developer</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 text-left">
+          <p class="text-xs font-mono text-cyan-400">2220241090</p>
+          <p class="font-bold text-slate-200 mt-1">Juan Berbesí</p>
+          <p class="text-xs text-slate-400 mt-0.5">Front-end Developer</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 text-left">
+          <p class="text-xs font-mono text-cyan-400">2220241016</p>
+          <p class="font-bold text-slate-200 mt-1">Sergio Gutiérrez</p>
+          <p class="text-xs text-slate-400 mt-0.5">Database & DevOps</p>
+        </div>
+      </div>
+
+      <div class="mt-8 flex items-center gap-4 text-xs text-slate-400">
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Producción en Vercel + Render</span>
+        <span>•</span>
+        <span>PostgreSQL Neon</span>
+        <span>•</span>
+        <span>Auth0</span>
+        <span>•</span>
+        <span>Mercado Pago</span>
+      </div>
+    </section>
+
+    <!-- ── SLIDE 2: PROBLEMA Y PROPUESTA DE VALOR ── -->
+    <section class="slide flex-col justify-center w-full" data-title="Problema y Solución">
+      <div class="text-left mb-6">
+        <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider">Contexto & Necesidad</span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-1">El Desafío en las Tiqueteras Virtuales</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
+          <h3 class="text-lg font-bold text-red-400 flex items-center gap-2">
+            ⚠️ Problemática Identificada
+          </h3>
+          <ul class="space-y-3 mt-4 text-sm text-slate-300">
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">•</span>
+              <span><strong>Sobreventa y condiciones de carrera:</strong> Colapso de cupos cuando miles de usuarios compran al mismo tiempo.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">•</span>
+              <span><strong>Fraude y reventa de entradas:</strong> Clonación de boletas físicas o PDFs estáticos sin verificación criptográfica.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">•</span>
+              <span><strong>Experiencia de compra deficiente:</strong> Planos estáticos, lentitud y falta de información en tiempo real sobre cupos.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6">
+          <h3 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
+            ✅ Nuestra Solución (Mr.Boleta)
+          </h3>
+          <ul class="space-y-3 mt-4 text-sm text-slate-300">
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">•</span>
+              <span><strong>Reserva atómica con ventana de 10 min:</strong> Transacciones ACID que congelan cupos temporalmente y previenen sobreventa.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">•</span>
+              <span><strong>Boletas únicas con código QR (UUID):</strong> Check-in de entrada en tiempo real con cámara que marca entradas usadas al instante.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">•</span>
+              <span><strong>Planos vectoriales interactivos:</strong> Selección intuitiva de localidades sobre escenarios reales (Movistar Arena y Vive Claro).</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SLIDE 3: ARQUITECTURA FINAL DEL SOFTWARE ── -->
+    <section class="slide flex-col justify-center w-full" data-title="Arquitectura de Software">
+      <div class="text-left mb-4">
+        <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider">Diseño del Sistema</span>
+        <h2 class="text-3xl font-extrabold text-white mt-0.5">Arquitectura Desacoplada en Tres Capas</h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
+        <!-- Columna 1: Frontend -->
+        <div class="bg-slate-900/90 border border-cyan-500/30 rounded-xl p-4">
+          <div class="flex items-center gap-2 text-cyan-400 font-bold text-sm mb-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Capa de Presentación
+          </div>
+          <p class="text-xs text-slate-400 mb-3">Alojado en <strong>Vercel (CI/CD)</strong></p>
+          <ul class="text-xs space-y-2 text-slate-300">
+            <li>• <strong>React 19 + TypeScript + Vite:</strong> Rendimiento ultra rápido.</li>
+            <li>• <strong>Tailwind CSS v4:</strong> UI adaptativa y modo oscuro.</li>
+            <li>• <strong>SVG Interactivo:</strong> Planos del Movistar Arena y Vive Claro.</li>
+            <li>• <strong>html5-qrcode:</strong> Escáner de boletas con cámara del celular.</li>
+          </ul>
+        </div>
+
+        <!-- Columna 2: Backend -->
+        <div class="bg-slate-900/90 border border-indigo-500/30 rounded-xl p-4">
+          <div class="flex items-center gap-2 text-indigo-400 font-bold text-sm mb-2">
+            <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Lógica del Negocio (API)
+          </div>
+          <p class="text-xs text-slate-400 mb-3">Alojado en <strong>Render (PaaS)</strong></p>
+          <ul class="text-xs space-y-2 text-slate-300">
+            <li>• <strong>Node.js + Express 5:</strong> Rutas RESTful seguras.</li>
+            <li>• <strong>Prisma ORM 7:</strong> Acceso a datos y migraciones automáticas.</li>
+            <li>• <strong>OpenAPI 3 / Swagger:</strong> Documentación interactiva en <code>/api/docs</code>.</li>
+            <li>• <strong>JWT Middleware:</strong> Autenticación bearer token con Auth0.</li>
+          </ul>
+        </div>
+
+        <!-- Columna 3: Cloud & DB -->
+        <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4">
+          <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm mb-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Datos & Servicios Externos
+          </div>
+          <p class="text-xs text-slate-400 mb-3">Infraestructura Gestionada</p>
+          <ul class="text-xs space-y-2 text-slate-300">
+            <li>• <strong>PostgreSQL Serverless (Neon):</strong> Base de datos relacional ACID.</li>
+            <li>• <strong>Auth0:</strong> Proveedor de identidad OAuth 2.0 / OpenID.</li>
+            <li>• <strong>Mercado Pago (Checkout Pro):</strong> Pasarela en COP con webhooks.</li>
+            <li>• <strong>Nodemailer / SMTP:</strong> Despacho de boletas con QR al correo.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded-lg bg-slate-950/60 border border-slate-800 text-xs text-slate-400 text-center">
+        🔒 Comunicación 100% cifrada vía HTTPS · Desacoplamiento total entre frontend y backend · Sin dependencias locales de red
+      </div>
+    </section>
+
+    <!-- ── SLIDE 4: PRODUCTO OBTENIDO (CLIENTE) ── -->
+    <section class="slide flex-col justify-center w-full" data-title="Producto Obtenido: Comprador">
+      <div class="text-left mb-6">
+        <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider">Funcionalidades Entregadas</span>
+        <h2 class="text-3xl font-extrabold text-white mt-1">Experiencia del Comprador</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/50 transition-colors">
+          <div class="text-2xl mb-2">🗺️</div>
+          <h3 class="font-bold text-white text-base">Planos Interactivos Reales</h3>
+          <p class="text-xs text-slate-400 mt-2">
+            Navegación visual sobre los recintos más importantes de Colombia: <strong>Movistar Arena</strong> (Bogotá) y <strong>Vive Claro</strong>. Selección sincronizada con el panel de precios y zoom interactivo.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/50 transition-colors">
+          <div class="text-2xl mb-2">💳</div>
+          <h3 class="font-bold text-white text-base">Checkout Pro & Reserva Segura</h3>
+          <p class="text-xs text-slate-400 mt-2">
+            Al ordenar se congelan los cupos por 10 minutos. Pago transparente en COP mediante Mercado Pago (tarjetas, PSE, Nequi) o modo simulado (Mock) para sustentaciones.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/50 transition-colors">
+          <div class="text-2xl mb-2">🎟️</div>
+          <h3 class="font-bold text-white text-base">Mis Boletas & Correo Digital</h3>
+          <p class="text-xs text-slate-400 mt-2">
+            Módulo "Mis Boletas" con código QR renderizado en vivo para acceso al recinto y despacho automático del ticket en imagen QR adjunta directo a la bandeja de correo.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SLIDE 5: PRODUCTO OBTENIDO (ADMINISTRADOR) ── -->
+    <section class="slide flex-col justify-center w-full" data-title="Producto Obtenido: Administrador">
+      <div class="text-left mb-6">
+        <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider">Gestión & Control de Entrada</span>
+        <h2 class="text-3xl font-extrabold text-white mt-1">Panel de Administrador (/admin)</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+          <div class="text-2xl mb-2">📊</div>
+          <h3 class="font-bold text-white text-base">Reporte de Ventas (HU09)</h3>
+          <p class="text-xs text-slate-400 mt-2">
+            Métricas consolidadas en tiempo real: número de órdenes pagadas, ingresos brutos en COP, boletas expedidas y cupos restantes desglosados por cada concierto.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+          <div class="text-2xl mb-2">🎪</div>
+          <h3 class="font-bold text-white text-base">Gestión de Eventos y Planos</h3>
+          <p class="text-xs text-slate-400 mt-2">
+            CRUD completo de eventos y localidades con estados (Borrador, Publicado, Inactivo). Asignación dinámica de planos y zonas sin permitir reducciones de aforo por debajo de lo vendido.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+          <div class="text-2xl mb-2">📷</div>
+          <h3 class="font-bold text-white text-base">Validador QR (Check-in Cámara)</h3>
+          <p class="text-xs text-slate-400 mt-2">
+            Control de portería en vivo mediante la cámara web/celular: escaneo continuo con retroalimentación acústica que marca la boleta como <strong>USADA</strong> y rechaza duplicados al instante.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SLIDE 6: RETOS Y DIFICULTADES TÉCNICAS ── -->
+    <section class="slide flex-col justify-center w-full" data-title="Retos y Dificultades">
+      <div class="text-left mb-6">
+        <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider">Ingeniería de Software</span>
+        <h2 class="text-3xl font-extrabold text-white mt-1">Retos Técnicos Superados</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+          <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+            <span>⚡</span> 1. Concurrencia y Control de Sobreventa
+          </div>
+          <p class="text-xs text-slate-300 mt-2">
+            <strong>Reto:</strong> Si dos usuarios compran el último cupo en el mismo milisegundo, ambos pagos podrían procesarse.<br>
+            <strong>Solución:</strong> Transacciones ACID en Prisma con sentencias condicionales (<code>WHERE cuposDisponibles >= cantidad</code>) y expiración automática de reservas pendientes a los 10 minutos.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+          <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+            <span>🔁</span> 2. Idempotencia en Webhooks de Pago
+          </div>
+          <p class="text-xs text-slate-300 mt-2">
+            <strong>Reto:</strong> Mercado Pago envía notificaciones repetidas y el usuario puede recargar la página de retorno.<br>
+            <strong>Solución:</strong> Endpoint idempotente que valida firmas criptográficas (<code>x-signature</code>) y consulta el estado real en la API oficial antes de aprobar; las boletas nunca se duplican.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+          <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+            <span>🎟️</span> 3. Prevención de Duplicados en Check-in
+          </div>
+          <p class="text-xs text-slate-300 mt-2">
+            <strong>Reto:</strong> Intentos de fraude escaneando la misma boleta en dos puertas simultáneamente.<br>
+            <strong>Solución:</strong> Actualización condicional atómica (<code>WHERE id = boletaId AND estado = 'ACTIVA'</code>). Solo el primer escaneo logra cambiar a <code>USADA</code>; el segundo recibe HTTP 409 Conflicto.
+          </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+          <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+            <span>📐</span> 4. Geometría Vectorial SVG Responsiva
+          </div>
+          <p class="text-xs text-slate-300 mt-2">
+            <strong>Reto:</strong> Modelar recintos con curvas elípticas, pasillos y cuñas angulares que encajen en cualquier pantalla.<br>
+            <strong>Solución:</strong> Algoritmos paramétricos de cálculo polar a cartesiano para generar las coordenadas exactas de las secciones del Movistar Arena y Vive Claro.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SLIDE 7: ASEGURAMIENTO DE CALIDAD Y PRUEBAS ── -->
+    <section class="slide flex-col justify-center w-full" data-title="Pruebas y QA">
+      <div class="text-left mb-6">
+        <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider">Validación y Verificación</span>
+        <h2 class="text-3xl font-extrabold text-white mt-1">Estrategia de Pruebas Automatizadas</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-6">
+        <div class="bg-slate-900/90 border border-cyan-500/30 rounded-2xl p-5 text-center">
+          <p class="text-4xl font-extrabold text-cyan-400">66</p>
+          <p class="text-sm font-semibold text-white mt-1">Pruebas Automatizadas</p>
+          <p class="text-xs text-slate-400 mt-0.5">100% pasando en suite limpia</p>
+        </div>
+        <div class="bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-5 text-center">
+          <p class="text-4xl font-extrabold text-indigo-400">7</p>
+          <p class="text-sm font-semibold text-white mt-1">Suites de Test Integrales</p>
+          <p class="text-xs text-slate-400 mt-0.5">Jest + Supertest</p>
+        </div>
+        <div class="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-5 text-center">
+          <p class="text-4xl font-extrabold text-emerald-400">0</p>
+          <p class="text-sm font-semibold text-white mt-1">Dependencias Externas</p>
+          <p class="text-xs text-slate-400 mt-0.5">Mocks aislados de DB y Auth</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 text-xs text-slate-300 space-y-2">
+        <p class="font-bold text-white text-sm mb-3">Cobertura de la Suite de Pruebas:</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+          <div>✔ <strong>Catálogo:</strong> Búsqueda de eventos, detalle, validación de IDs.</div>
+          <div>✔ <strong>Órdenes:</strong> Creación, expiración de 10 min y listado seguro.</div>
+          <div>✔ <strong>Seguridad Admin:</strong> Protección contra 401 Unauthorized y 403 Forbidden.</div>
+          <div>✔ <strong>Pasarela Mock:</strong> Aprobación, rechazo y retorno al cliente.</div>
+          <div>✔ <strong>Mercado Pago:</strong> Generación de preferencia, webhooks y validación de firma.</div>
+          <div>✔ <strong>Validación QR:</strong> Rechazo de boletas usadas, duplicadas o anuladas.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SLIDE 8: CONCLUSIONES Y ENLACES ── -->
+    <section class="slide flex-col items-center justify-center text-center w-full" data-title="Conclusiones y Demo">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-4">
+        Entrega Final Satisfactoria
+      </div>
+      <h2 class="text-3xl md:text-5xl font-extrabold text-white">¡Gracias! Pase a la Demostración</h2>
+      <p class="text-base text-slate-400 mt-3 max-w-xl">
+        Todos los entregables están disponibles en producción, documentados y listos para evaluación en vivo.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 w-full max-w-3xl">
+        <a href="https://mr-boleta.vercel.app" target="_blank" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-400 text-left transition-colors">
+          <p class="text-xs text-cyan-400 font-bold uppercase">Aplicación Web</p>
+          <p class="font-bold text-white mt-1">mr-boleta.vercel.app</p>
+          <p class="text-xs text-slate-500 mt-1">Frontend desplegado →</p>
+        </a>
+        <a href="https://github.com/davidprimo-ctrl/Mr.Boleta" target="_blank" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-400 text-left transition-colors">
+          <p class="text-xs text-cyan-400 font-bold uppercase">Repositorio</p>
+          <p class="font-bold text-white mt-1">GitHub / Mr.Boleta</p>
+          <p class="text-xs text-slate-500 mt-1">Código y pruebas →</p>
+        </a>
+        <a href="https://github.com/davidprimo-ctrl/Mr.Boleta/wiki" target="_blank" class="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-400 text-left transition-colors">
+          <p class="text-xs text-cyan-400 font-bold uppercase">Wiki Oficial</p>
+          <p class="font-bold text-white mt-1">Wiki del Proyecto</p>
+          <p class="text-xs text-slate-500 mt-1">Todos los diagramas →</p>
+        </a>
+      </div>
+
+      <p class="text-xs text-slate-500 mt-8">
+        ¿Preguntas o comentarios sobre la implementación?
+      </p>
+    </section>
+
+  </main>
+
+  <!-- Footer con controles de navegación -->
+  <footer class="w-full px-8 py-4 flex items-center justify-between border-t border-slate-800/80 bg-slate-950/60 no-print z-40">
+    <div class="text-xs text-slate-500 hidden sm:block">
+      Usa las teclas <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">←</kbd> y <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">→</kbd> o haz clic en los botones
+    </div>
+    <div class="flex items-center gap-3 mx-auto sm:mx-0">
+      <button id="btn-prev" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+        ← Anterior
+      </button>
+      <button id="btn-next" class="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold transition-colors">
+        Siguiente →
+      </button>
+    </div>
+  </footer>
+
+  <!-- Script de control interactivo de la presentación -->
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const prevBtn = document.getElementById('btn-prev');
+    const nextBtn = document.getElementById('btn-next');
+    const counter = document.getElementById('slide-counter');
+    const progressBar = document.getElementById('progress-bar');
+    let currentIndex = 0;
+
+    function updateSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[currentIndex].classList.remove('active');
+      currentIndex = index;
+      slides[currentIndex].classList.add('active');
+
+      // Actualizar contador y progreso
+      counter.textContent = `${currentIndex + 1} / ${slides.length}`;
+      progressBar.style.width = `${((currentIndex + 1) / slides.length) * 100}%`;
+
+      // Habilitar / deshabilitar botón anterior
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.textContent = currentIndex === slides.length - 1 ? 'Finalizar' : 'Siguiente →';
+    }
+
+    prevBtn.addEventListener('click', () => updateSlide(currentIndex - 1));
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < slides.length - 1) {
+        updateSlide(currentIndex + 1);
+      }
+    });
+
+    // Control mediante teclado
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        updateSlide(currentIndex + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        updateSlide(currentIndex - 1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        updateSlide(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        updateSlide(slides.length - 1);
+      }
+    });
+
+    updateSlide(0);
+  </script>
+</body>
+</html>
