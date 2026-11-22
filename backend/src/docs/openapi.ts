@@ -23,7 +23,7 @@ export const documentoOpenApi = {
   openapi: "3.0.3",
   info: {
     title: "Mr.Boleta API",
-    version: "0.3.4",
+    version: "0.3.6",
     description:
       "API de la tiquetera virtual Mr.Boleta: catálogo de eventos, órdenes con reserva de cupos por 10 minutos, " +
       "pagos (pasarela simulada o Mercado Pago), boletas con código QR, panel de administrador y reporte de ventas.\n\n" +
@@ -444,6 +444,12 @@ export const documentoOpenApi = {
           precio: { type: "string", description: "Pesos colombianos (Decimal enviado como texto)", example: "80000" },
           aforo: { type: "integer", example: 500 },
           cuposDisponibles: { type: "integer", example: 498 },
+          zona: {
+            type: "string",
+            nullable: true,
+            description: "Código de la sección en el plano preestablecido (ej. P101103)",
+            example: "PISO2A",
+          },
           eventoId: { type: "integer", example: 1 },
         },
       },
@@ -459,6 +465,12 @@ export const documentoOpenApi = {
           fecha: { type: "string", format: "date-time" },
           imagenUrl: { type: "string", nullable: true },
           estado: { type: "string", enum: ["BORRADOR", "PUBLICADO", "INACTIVO"] },
+          mapa: {
+            type: "string",
+            enum: ["generico", "movistar-arena"],
+            description: "Plano del recinto que se muestra en el detalle del evento",
+            example: "movistar-arena",
+          },
           localidades: { type: "array", items: ref("Localidad") },
         },
       },
@@ -473,6 +485,12 @@ export const documentoOpenApi = {
           ciudad: { type: "string", example: "Ibagué" },
           fecha: { type: "string", format: "date-time", example: "2026-12-20T20:00:00-05:00" },
           imagenUrl: { type: "string", nullable: true, example: "https://picsum.photos/seed/salsa/800/450" },
+          mapa: {
+            type: "string",
+            enum: ["generico", "movistar-arena"],
+            default: "generico",
+            description: "Plano preestablecido; por defecto, recinto genérico",
+          },
         },
       },
       DatosLocalidad: {
@@ -482,6 +500,13 @@ export const documentoOpenApi = {
           nombre: { type: "string", example: "VIP" },
           precio: { type: "number", example: 220000 },
           aforo: { type: "integer", example: 60 },
+          zona: {
+            type: "string",
+            nullable: true,
+            maxLength: 30,
+            description: "Código de la sección del plano al que pertenece la localidad",
+            example: "P101103",
+          },
         },
       },
       Usuario: {

@@ -1,6 +1,6 @@
 # Sprint 3 — Mr.Boleta
 
-Versión `v0.3.5`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
+Versión `v0.3.6`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
 
 ## Lo que se entregó
 
@@ -64,10 +64,20 @@ debajo de lo vendido o reservado; los eventos no se borran, se desactivan para c
 
 ### Mapa del recinto
 
-La página del evento muestra un **recinto tipo estadio** (SVG): escenario, piso central y un anillo de
-secciones con puntos de asientos. Cada localidad recibe un color y varias secciones contiguas, ordenadas de
-la más cara (cerca del escenario) a la más barata. El panel derecho lista las localidades con color, precio y
-cupos, y permite elegir la misma zona desde el mapa o desde la lista. Incluye zoom con desplazamiento.
+La página del evento muestra el plano del recinto (SVG): escenario, secciones y panel de precios. Cada
+localidad recibe un color, y el panel derecho lista las localidades con color, precio y cupos; se puede
+elegir la misma zona desde el mapa o desde la lista. Incluye zoom con desplazamiento.
+
+Hay dos planos:
+
+- **Recinto genérico:** el anillo de secciones se arma solo a partir de las localidades, ordenadas de la
+  más cara (cerca del escenario) a la más barata, con puntos de asientos referenciales.
+- **Movistar Arena:** plano preestablecido con las secciones reales (Tribuna Fan, Platea 101-106, Piso 2
+  201-218 y Piso 3 303-317) y sus colores. Al elegirlo en el panel de administrador se cargan las
+  localidades sugeridas con su zona; los precios y aforos se pueden ajustar antes de crear el evento.
+  También se puede cambiar el plano y la zona de cada localidad desde «Editar datos».
+
+Cada evento guarda su plano en `Evento.mapa` y cada localidad su sección en `Localidad.zona`.
 
 > Es un **mapa referencial**: los asientos no se eligen individualmente; la compra es por localidad y
 > cantidad, como define el modelo de datos.

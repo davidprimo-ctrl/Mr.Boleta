@@ -99,6 +99,46 @@ describe("API del panel de administrador", () => {
     );
   });
 
+  it("usa el recinto genérico cuando no se envía mapa", async () => {
+    await comoAdmin(request(app).post("/api/admin/eventos").send(datosEvento));
+    expect(admin.crearEvento).toHaveBeenCalledWith(
+      expect.objectContaining({ mapa: "generico" }),
+      expect.any(Array),
+    );
+  });
+
+  it("acepta el plano preestablecido y las zonas de cada localidad", async () => {
+    const res = await comoAdmin(request(app).post("/api/admin/eventos").send({
+      ...datosEvento,
+      mapa: "movistar-arena",
+      localidades: [{ nombre: "Platea (101 y 103)", precio: 300000, aforo: 240, zona: " P101103 " }],
+    }));
+    expect(res.status).toBe(201);
+    expect(admin.crearEvento).toHaveBeenCalledWith(
+      expect.objectContaining({ mapa: "movistar-arena" }),
+      expect.arrayContaining([expect.objectContaining({ zona: "P101103" })]),
+    );
+  });
+
+  it("rechaza con 400 un plano desconocido", async () => {
+    const res = await comoAdmin(request(app).post("/api/admin/eventos").send({
+      ...datosEvento,
+      mapa: "estadio-inventado",
+    }));
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain("mapa");
+    expect(admin.crearEvento).not.toHaveBeenCalled();
+  });
+
+  it("rechaza con 400 una zona demasiado larga", async () => {
+    const res = await comoAdmin(request(app).post("/api/admin/eventos").send({
+      ...datosEvento,
+      localidades: [{ nombre: "General", precio: 80000, aforo: 200, zona: "x".repeat(31) }],
+    }));
+    expect(res.status).toBe(400);
+    expect(admin.crearEvento).not.toHaveBeenCalled();
+  });
+
   it("rechaza con 400 un estado inválido", async () => {
     const res = await comoAdmin(request(app).patch("/api/admin/eventos/7/estado").send({ estado: "BORRANDO" }));
     expect(res.status).toBe(400);

@@ -14,7 +14,7 @@ import {
 import type { DatosEvento, DatosLocalidad, Evento, MapaId, ResumenAdmin, Usuario } from "../types";
 import { formatoCOP, formatoFecha } from "../utils/formato";
 import MapaLocalidades from "../components/MapaLocalidades";
-import { localidadesSugeridas, localidadesDeVistaPrevia, MAPAS, type MapaPreset } from "../components/mapas/presets";
+import { localidadesSugeridas, localidadesDeVistaPrevia, MAPAS, nombreZona, presetDe, type MapaPreset } from "../components/mapas/presets";
 
 // El lector QR (ZXing) es pesado: se descarga solo al abrir la pestaña.
 const ValidadorQR = lazy(() => import("./ValidadorQR"));
@@ -291,6 +291,7 @@ export default function Admin() {
                       ciudad: evento.ciudad,
                       fecha: aInputFecha(evento.fecha),
                       imagenUrl: evento.imagenUrl ?? "",
+                      mapa: evento.mapa ?? "generico",
                     });
                   }}
                   className="text-xs border border-navy-700 hover:border-brand-400 px-3 py-1.5 rounded-lg"
@@ -337,6 +338,27 @@ export default function Admin() {
                       required
                     />
                   </label>
+                  <label className="text-sm sm:col-span-2">
+                    Plano del recinto
+                    <select
+                      value={formEvento.mapa ?? "generico"}
+                      onChange={(e) => setFormEvento({ ...formEvento, mapa: e.target.value as MapaId })}
+                      className="mt-1 w-full bg-navy-800 border border-navy-700 rounded-lg p-2"
+                    >
+                      {(Object.values(MAPAS) as MapaPreset[]).map((preset) => (
+                        <option key={preset.id} value={preset.id}>
+                          {preset.nombre} — {preset.descripcion}
+                        </option>
+                      ))}
+                    </select>
+                    {formEvento.mapa !== "generico" &&
+                      !evento.localidades.some((l) => l.zona) && (
+                        <span className="block mt-2 text-xs text-yellow-300">
+                          Este evento no tiene zonas asignadas todavía: asigna una «Zona del plano» a
+                          cada localidad para que aparezcan sobre el plano.
+                        </span>
+                      )}
+                  </label>
                   <button type="submit" disabled={guardando} className="sm:col-span-2 bg-brand-500 rounded-lg py-2 font-semibold disabled:opacity-50">
                     Guardar cambios
                   </button>
@@ -349,6 +371,7 @@ export default function Admin() {
                   <thead className="text-gray-400 border-b border-navy-700">
                     <tr>
                       <th className="text-left p-2">Nombre</th>
+                      <th className="text-left p-2">Zona</th>
                       <th className="text-right p-2">Precio</th>
                       <th className="text-right p-2">Aforo</th>
                       <th className="text-right p-2">Cupos</th>
@@ -360,7 +383,7 @@ export default function Admin() {
                       <tr key={loc.id}>
                         {editandoLocalidad === loc.id ? (
                           <>
-                            <td className="p-2" colSpan={4}>
+                            <td className="p-2" colSpan={5}>
                               <form
                                 className="flex flex-wrap gap-2"
                                 onSubmit={(e) => {
@@ -393,6 +416,19 @@ export default function Admin() {
                                   onChange={(e) => setFormLocalidad({ ...formLocalidad, aforo: Number(e.target.value) })}
                                   className="w-24 bg-navy-900 border border-navy-700 rounded p-2"
                                 />
+                                <select
+                                  aria-label="Zona del plano"
+                                  value={formLocalidad.zona ?? ""}
+                                  onChange={(e) => setFormLocalidad({ ...formLocalidad, zona: e.target.value || null })}
+                                  className="bg-navy-900 border border-navy-700 rounded p-2 max-w-56"
+                                >
+                                  <option value="">Sin zona</option>
+                                  {presetDe(evento.mapa).zonas.map((z) => (
+                                    <option key={z.codigo} value={z.codigo}>
+                                      {z.nombre}
+                                    </option>
+                                  ))}
+                                </select>
                                 <button type="submit" disabled={guardando} className="bg-brand-500 rounded px-4 text-sm">Guardar</button>
                                 <button type="button" onClick={() => setEditandoLocalidad(null)} className="text-gray-400 text-sm">Cancelar</button>
                               </form>
@@ -401,6 +437,9 @@ export default function Admin() {
                         ) : (
                           <>
                             <td className="p-2 font-semibold">{loc.nombre}</td>
+                            <td className="p-2 text-gray-400">
+                              {loc.zona ? nombreZona(evento.mapa, loc.zona) : "—"}
+                            </td>
                             <td className="p-2 text-right">{formatoCOP(loc.precio)}</td>
                             <td className="p-2 text-right">{loc.aforo}</td>
                             <td className="p-2 text-right">{loc.cuposDisponibles}</td>
@@ -409,7 +448,7 @@ export default function Admin() {
                                 type="button"
                                 onClick={() => {
                                   setEditandoLocalidad(loc.id);
-                                  setFormLocalidad({ nombre: loc.nombre, precio: Number(loc.precio), aforo: loc.aforo });
+                                  setFormLocalidad({ nombre: loc.nombre, precio: Number(loc.precio), aforo: loc.aforo, zona: loc.zona });
                                 }}
                                 className="text-brand-400 hover:underline text-xs"
                               >
@@ -463,6 +502,19 @@ export default function Admin() {
                     className="w-24 bg-navy-900 border border-navy-700 rounded p-2"
                     required
                   />
+                  <select
+                    aria-label="Zona de la nueva localidad"
+                    value={nuevaLocalidad.zona ?? ""}
+                    onChange={(e) => setNuevaLocalidad({ ...nuevaLocalidad, zona: e.target.value || null })}
+                    className="bg-navy-900 border border-navy-700 rounded p-2 max-w-56"
+                  >
+                    <option value="">Sin zona</option>
+                    {presetDe(evento.mapa).zonas.map((z) => (
+                      <option key={z.codigo} value={z.codigo}>
+                        {z.nombre}
+                      </option>
+                    ))}
+                  </select>
                   <button type="submit" disabled={guardando} className="bg-brand-500 rounded px-4 text-sm">Agregar</button>
                   <button type="button" onClick={() => setAgregandoA(null)} className="text-gray-400 text-sm">Cancelar</button>
                 </form>
@@ -577,9 +629,9 @@ export default function Admin() {
               <div className="flex items-center justify-between">
                 <h3 className="font-bold">
                   Localidades
-                  {nuevo.mapa !== "generico" && (
+                  {nuevo.mapa && nuevo.mapa !== "generico" && (
                     <span className="ml-2 text-xs text-brand-400 font-normal">
-                      · cargadas desde el plano ({nuevo.mapa})
+                      · cargadas desde el plano {presetDe(nuevo.mapa).nombre}
                     </span>
                   )}
                 </h3>
@@ -629,8 +681,11 @@ export default function Admin() {
                       required
                     />
                     {loc.zona && (
-                      <span className="text-xs text-gray-500 bg-navy-900 border border-navy-700 rounded px-2 py-2">
-                        zona: {loc.zona}
+                      <span
+                        title={nombreZona(nuevo.mapa, loc.zona)}
+                        className="text-xs text-gray-500 bg-navy-900 border border-navy-700 rounded px-2 py-2 max-w-56 truncate"
+                      >
+                        zona: {nombreZona(nuevo.mapa, loc.zona)}
                       </span>
                     )}
                     {nuevasLocalidades.length > 1 && (

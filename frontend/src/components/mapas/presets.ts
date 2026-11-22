@@ -139,6 +139,12 @@ export function zonaPreset(mapa: MapaId | undefined, codigo: string | null | und
   return presetDe(mapa).zonas.find((z) => z.codigo === codigo);
 }
 
+/** Nombre legible de una zona del plano (el código si no pertenece al preset). */
+export function nombreZona(mapa: MapaId | undefined, codigo: string | null | undefined) {
+  if (!codigo) return "";
+  return zonaPreset(mapa, codigo)?.nombre ?? codigo;
+}
+
 /** Color de la localidad: el del plano preestablecido o el genérico por posición. */
 export function colorDeLocalidad(
   localidad: Pick<Localidad, "zona">,
