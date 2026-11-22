@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Localidad, MapaId } from "../types";
 import MapaGenerico from "./mapas/MapaGenerico";
 import MovistarArena from "./mapas/MovistarArena";
+import ViveClaro from "./mapas/ViveClaro";
 import { presetDe } from "./mapas/presets";
 
 interface Props {
@@ -21,7 +22,6 @@ export default function MapaLocalidades({ zonas, seleccionada, onSeleccionar, ma
     [preset, zonas],
   );
   const hayAgotadas = zonas.some((z) => z.cuposDisponibles === 0);
-  const alto = usaPreset ? "70vh" : "80vh";
 
   return (
     <div className="relative bg-navy-800 border border-navy-700 rounded-xl p-4 md:p-6">
@@ -56,10 +56,17 @@ export default function MapaLocalidades({ zonas, seleccionada, onSeleccionar, ma
         </button>
       </div>
 
-      <div className="overflow-auto" style={{ maxHeight: alto }}>
+      <div className="overflow-auto" style={{ maxHeight: zoom > 1 ? "80vh" : undefined }}>
         <div style={{ width: `${zoom * 100}%` }} className="mx-auto">
-          {usaPreset ? (
+          {usaPreset && preset.id === "movistar-arena" ? (
             <MovistarArena
+              zonas={zonas}
+              seleccionada={seleccionada}
+              onSeleccionar={onSeleccionar}
+              className="w-full h-auto select-none"
+            />
+          ) : usaPreset && preset.id === "vive-claro" ? (
+            <ViveClaro
               zonas={zonas}
               seleccionada={seleccionada}
               onSeleccionar={onSeleccionar}

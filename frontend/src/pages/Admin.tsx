@@ -596,7 +596,7 @@ export default function Admin() {
               {/* ── Selector de mapa ── */}
               <label className="text-sm sm:col-span-2">
                 Plano del recinto
-                <div className="mt-2 grid grid-cols-2 gap-3">
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {(Object.values(MAPAS) as MapaPreset[]).map((preset) => (
                     <button
                       key={preset.id}

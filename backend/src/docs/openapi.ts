@@ -23,7 +23,7 @@ export const documentoOpenApi = {
   openapi: "3.0.3",
   info: {
     title: "Mr.Boleta API",
-    version: "0.3.6",
+    version: "0.3.7",
     description:
       "API de la tiquetera virtual Mr.Boleta: catálogo de eventos, órdenes con reserva de cupos por 10 minutos, " +
       "pagos (pasarela simulada o Mercado Pago), boletas con código QR, panel de administrador y reporte de ventas.\n\n" +
@@ -467,7 +467,7 @@ export const documentoOpenApi = {
           estado: { type: "string", enum: ["BORRADOR", "PUBLICADO", "INACTIVO"] },
           mapa: {
             type: "string",
-            enum: ["generico", "movistar-arena"],
+            enum: ["generico", "movistar-arena", "vive-claro"],
             description: "Plano del recinto que se muestra en el detalle del evento",
             example: "movistar-arena",
           },
@@ -487,7 +487,7 @@ export const documentoOpenApi = {
           imagenUrl: { type: "string", nullable: true, example: "https://picsum.photos/seed/salsa/800/450" },
           mapa: {
             type: "string",
-            enum: ["generico", "movistar-arena"],
+            enum: ["generico", "movistar-arena", "vive-claro"],
             default: "generico",
             description: "Plano preestablecido; por defecto, recinto genérico",
           },

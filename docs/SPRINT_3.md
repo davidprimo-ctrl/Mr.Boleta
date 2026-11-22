@@ -1,6 +1,6 @@
 # Sprint 3 — Mr.Boleta
 
-Versión `v0.3.6`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
+Versión `v0.3.7`. Alcance: **Swagger**, **panel de administrador**, **reporte de ventas (HU09)** y **pruebas automáticas**.
 
 ## Lo que se entregó
 
@@ -68,13 +68,16 @@ La página del evento muestra el plano del recinto (SVG): escenario, secciones y
 localidad recibe un color, y el panel derecho lista las localidades con color, precio y cupos; se puede
 elegir la misma zona desde el mapa o desde la lista. Incluye zoom con desplazamiento.
 
-Hay dos planos:
+Hay tres planos:
 
 - **Recinto genérico:** el anillo de secciones se arma solo a partir de las localidades, ordenadas de la
   más cara (cerca del escenario) a la más barata, con puntos de asientos referenciales.
 - **Movistar Arena:** plano preestablecido con las secciones reales (Tribuna Fan, Platea 101-106, Piso 2
   201-218 y Piso 3 303-317) y sus colores. Al elegirlo en el panel de administrador se cargan las
   localidades sugeridas con su zona; los precios y aforos se pueden ajustar antes de crear el evento.
+- **Vive Claro:** plano preestablecido con LPU PIT 1 y 2, Platea 1, Platea 2, las sillas 101-114 y las
+  esquinas 115-126, más Preferencial (127-128) y General (129-132). Igual que el anterior, carga las
+  localidades sugeridas al elegirlo y se puede cambiar después desde «Editar datos».
   También se puede cambiar el plano y la zona de cada localidad desde «Editar datos».
 
 Cada evento guarda su plano en `Evento.mapa` y cada localidad su sección en `Localidad.zona`.

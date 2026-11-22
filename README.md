@@ -1,6 +1,6 @@
 # Mr.Boleta
 
-Tiquetera virtual para eventos musicales. Versión actual: **v0.3.6** (Sprint 3).
+Tiquetera virtual para eventos musicales. Versión actual: **v0.3.7** (Sprint 3).
 
 ## Demo en línea
 
@@ -15,7 +15,7 @@ Tiquetera virtual para eventos musicales. Versión actual: **v0.3.6** (Sprint 3)
 - **Panel de administrador:** `/admin` (solo usuarios con rol `ADMIN`). Permite crear, editar, publicar y desactivar eventos y localidades con selector de planos del recinto y vista previa en tiempo real.
 - **Reporte de ventas (HU09):** pestaña "Resumen de ventas" del panel; API en `GET /api/admin/resumen`.
 - **Check-in con QR:** pestaña "Validar boletas (QR)" del panel: la cámara del celular escanea cada boleta, la marca como usada y rechaza duplicados; API en `POST /api/admin/boletas/validar`.
-- **Mapas del recinto y planos preestablecidos:** visualización interactiva SVG con secciones por localidad, zoom y sincronización de precios. Soporta tanto el **recinto genérico** como el plano oficial del **Movistar Arena** (con Tribuna Fan, Platea 101-106, Piso 2 y Piso 3).
+- **Mapas del recinto y planos preestablecidos:** visualización interactiva SVG con secciones por localidad, zoom y sincronización de precios. Soporta el **recinto genérico**, el plano oficial del **Movistar Arena** (Tribuna Fan, Platea 101-106, Piso 2 y Piso 3) y el plano del **Vive Claro** (LPU PIT, Platea 1 y 2, y sillas 101-132).
 - **Pagos con Mercado Pago:** Checkout Pro en COP, con confirmación al volver y webhook idempotente. Se activa con `PAYMENT_PROVIDER=mercadopago` y `MP_ACCESS_TOKEN`.
 - **Pruebas automáticas:** 61 pruebas con Jest + Supertest.
 

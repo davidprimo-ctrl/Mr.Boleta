@@ -120,6 +120,19 @@ describe("API del panel de administrador", () => {
     );
   });
 
+  it("acepta el plano del Vive Claro con sus zonas", async () => {
+    const res = await comoAdmin(request(app).post("/api/admin/eventos").send({
+      ...datosEvento,
+      mapa: "vive-claro",
+      localidades: [{ nombre: "Platea baja (101 - 108)", precio: 320000, aforo: 700, zona: "BAJA" }],
+    }));
+    expect(res.status).toBe(201);
+    expect(admin.crearEvento).toHaveBeenCalledWith(
+      expect.objectContaining({ mapa: "vive-claro" }),
+      expect.arrayContaining([expect.objectContaining({ zona: "BAJA" })]),
+    );
+  });
+
   it("rechaza con 400 un plano desconocido", async () => {
     const res = await comoAdmin(request(app).post("/api/admin/eventos").send({
       ...datosEvento,

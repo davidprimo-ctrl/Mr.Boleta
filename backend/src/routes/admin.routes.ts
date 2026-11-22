@@ -41,7 +41,7 @@ function fecha(body: Cuerpo, campo: string) {
 }
 
 /** Mapas preestablecidos que entiende el frontend. */
-const MAPAS = new Set(["generico", "movistar-arena"]);
+const MAPAS = new Set(["generico", "movistar-arena", "vive-claro"]);
 
 function leerMapa(body: Cuerpo) {
   const valor = body.mapa;

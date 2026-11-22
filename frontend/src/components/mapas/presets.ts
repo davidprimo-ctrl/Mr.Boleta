@@ -114,6 +114,81 @@ export const ZONAS_MOVISTAR: ZonaPreset[] = [
   },
 ];
 
+/**
+ * Plano del Vive Claro, con las secciones de la referencia: LPU PIT, Platea 1,
+ * Platea 2 y las sillas numeradas 101 a 132. Los precios y aforos son
+ * sugerencias editables al crear el evento.
+ */
+export const ZONAS_VIVE_CLARO: ZonaPreset[] = [
+  {
+    codigo: "LPU",
+    nombre: "LPU PIT (1 y 2)",
+    color: "#8b0f1e",
+    precioSugerido: 480000,
+    aforoSugerido: 300,
+    secciones: ["PIT1", "PIT2"],
+  },
+  {
+    codigo: "PLATEA1",
+    nombre: "Platea 1",
+    color: "#7c0c1a",
+    precioSugerido: 390000,
+    aforoSugerido: 500,
+    secciones: ["P1"],
+  },
+  {
+    codigo: "PLATEA2",
+    nombre: "Platea 2",
+    color: "#ee7a6f",
+    precioSugerido: 290000,
+    aforoSugerido: 800,
+    secciones: ["P2"],
+  },
+  {
+    codigo: "BAJA",
+    nombre: "Platea baja (101 - 108)",
+    color: "#f2416c",
+    precioSugerido: 320000,
+    aforoSugerido: 700,
+    secciones: ["101", "102", "103", "104", "105", "106", "107", "108"],
+  },
+  {
+    codigo: "ALTA",
+    nombre: "Platea alta (109 - 114)",
+    color: "#f7941d",
+    precioSugerido: 210000,
+    aforoSugerido: 600,
+    secciones: ["109", "110", "111", "112", "113", "114"],
+  },
+  {
+    codigo: "ESQUINAS",
+    nombre: "Esquinas (115 - 126)",
+    color: "#f6c4a0",
+    precioSugerido: 160000,
+    aforoSugerido: 900,
+    secciones: [
+      "115", "116", "117", "118", "119", "120",
+      "121", "122", "123", "124", "125", "126",
+    ],
+  },
+  {
+    codigo: "PREFERENCIAL",
+    nombre: "Preferencial (127 - 128)",
+    color: "#f6d55c",
+    precioSugerido: 130000,
+    aforoSugerido: 250,
+    secciones: ["127", "128"],
+  },
+  {
+    codigo: "GENERAL",
+    nombre: "General (129 - 132)",
+    color: "#e25b4a",
+    precioSugerido: 95000,
+    aforoSugerido: 450,
+    secciones: ["129", "130", "131", "132"],
+  },
+];
+
 export const MAPAS: Record<MapaId, MapaPreset> = {
   generico: {
     id: "generico",
@@ -126,6 +201,12 @@ export const MAPAS: Record<MapaId, MapaPreset> = {
     nombre: "Movistar Arena",
     descripcion: "Platea 101-106, piso 2 (201-218) y piso 3 (303-317), como el plano real.",
     zonas: ZONAS_MOVISTAR,
+  },
+  "vive-claro": {
+    id: "vive-claro",
+    nombre: "Vive Claro",
+    descripcion: "LPU PIT, Platea 1 y 2, y sillas 101-132, como el plano real.",
+    zonas: ZONAS_VIVE_CLARO,
   },
 };
 

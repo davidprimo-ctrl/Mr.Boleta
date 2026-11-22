@@ -1,6 +1,6 @@
 // Tipos que devuelve la API (deben coincidir con el modelo de Prisma)
 
-export type MapaId = "generico" | "movistar-arena";
+export type MapaId = "generico" | "movistar-arena" | "vive-claro";
 
 export interface Localidad {
   id: number;
