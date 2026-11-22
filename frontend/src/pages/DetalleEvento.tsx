@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useAuth0 } from "@auth0/auth0-react";
-import MapaLocalidades, { colorDeLocalidad } from "../components/MapaLocalidades";
+import MapaLocalidades from "../components/MapaLocalidades";
+import { colorDeLocalidad } from "../components/mapas/presets";
 import { crearOrden, obtenerEvento } from "../services/api";
 import type { Evento } from "../types";
 import { formatoCOP, formatoFecha } from "../utils/formato";

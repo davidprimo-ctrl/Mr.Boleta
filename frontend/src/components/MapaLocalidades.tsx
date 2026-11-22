@@ -2,9 +2,7 @@ import { useMemo, useState } from "react";
 import type { Localidad, MapaId } from "../types";
 import MapaGenerico from "./mapas/MapaGenerico";
 import MovistarArena from "./mapas/MovistarArena";
-import { colorDeLocalidad, colorZona, presetDe } from "./mapas/presets";
-
-export { colorDeLocalidad, colorZona };
+import { presetDe } from "./mapas/presets";
 
 interface Props {
   zonas: Localidad[]; // ya ordenadas: de la más cara a la más barata
